@@ -4,31 +4,52 @@
     <meta charset="utf-8">
     <title>React smart table example</title>
     <!-- css -->
-    <!--link rel="stylesheet" href="react_smart_table.css" -->
+    <link rel="stylesheet" href="react_smart_table.css" >
     <!-- js -->
     <script src="https://fb.me/react-0.13.1.js"></script>    
-    <script src="react_smart_table.js"></script>	   
+    <script src="react_smart_table.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <!-- Optional theme 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    -->
+    <!-- Latest compiled and minified JavaScript 
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    -->
+
   </head>
   <body>
     <!-- page content -->
     <div id="smart_table1">Lorem ipsum</div> 
     <script>
+
+      function randomString(length)
+      {
+          var text = "";
+          var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
+
+          for( var i=0; i < length; i++ )
+              text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+          return text;
+      }
       
       var rowCount = 200;
       var columnCount = 10;
       var data=[];
       for(var row=0; row<200;row++)
       {
-        var cell = {};
+        var item = {};
+        item["id"] = row;
         for(var col=0; col<10;col++)
         {
-          cell["column"+col.toString()] = row.toString()+" "+col.toString();
+          item["column"+col.toString()] = randomString(3);          
         }
-        data.push(cell);
+        data.push(item);
       }
       var Table = React.createFactory(ReactSmartTable.Table);
       React.render(
-        Table({data:data}),
+        Table({ data:data}),
         document.getElementById('smart_table1')    
       );
     </script>
