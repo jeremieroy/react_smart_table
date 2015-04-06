@@ -11,26 +11,47 @@
     var exports = {};
 
 
+
+
+
     var Table = exports.Table = React.createClass({displayName: "Table",
         getDefaultProps: function() {
             return {
-                filterByColumn: false
+                filterByColumn: false,
+                tableClass: "table",
+                sortNeutralClass: "sort-neutral",
+                sortAscendingClass: "sort-ascending",
+                sortDescendingClass: "sort-descending"                
             };
         },
         getInitialState: function() {
             return {   
-                data : this.props.data // TODO: fix antipattern
+                data : this.props.data, // TODO: fix antipattern
+                sortOrderAscending: true,
+                sortColumn: "id"
             };
         },
         getColumns: function() {
-             return Object.keys(this.state.data[0]); 
+            return Object.keys(this.state.data[0]); 
+        },
+        sortColumn: function(column) {
+            return function(event) {
+                console.log("column:"+column)
+                var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
+                this.setState({sortColumn: column, sortOrderAscending:newSortOrder});                
+            }.bind(this);
+        },
+        sortClass: function(column) {
+            var ascOrDesc = (this.state.sortOrderAscending) ? "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top";
+            return (this.state.sortColumn == column) ? ascOrDesc : "";
         },
         render: function() {
             var columns = this.getColumns();
-            
+
             var tr_headers = columns.map(function (col, i) {
-                return React.DOM.th({key:i}, col);
-            });
+                return React.DOM.th({key:i, onClick:this.sortColumn(col), className:this.sortClass(col)}, col);
+            }, this);
+
 
             var tr_filters = columns.map(function (col, i) {
                 return React.DOM.th({key:i}, col);
@@ -41,7 +62,15 @@
                 (this.props.filterByColumn)?React.DOM.tr( {key: "tr_filters"}, tr_filters ):null
             ]);
 
-            var tr_body = this.state.data.map(function (row, i) {
+            // sort
+            var dataCopy = this.state.data;
+            var key = this.state.sortColumn;
+            var order = this.state.sortOrderAscending?1:-1;
+            dataCopy.sort( function(x,y){
+                return (x[key] === y[key])? 0: (x[key] > y[key] ? order : -order);
+            });
+
+            var tr_body = dataCopy.map(function (row, i) {
                 return React.DOM.tr( {key:i}, 
                     columns.map(function (col, j) {
                         return React.DOM.td({key:j}, row[col]);
@@ -50,7 +79,7 @@
             });
 
             var tbody = React.DOM.tbody( {key: "tbody"}, tr_body );
-            return React.DOM.table( {}, [thead, tbody] );
+            return React.DOM.table( {className:this.props.tableClass}, [thead, tbody] );
         }
     });
         
