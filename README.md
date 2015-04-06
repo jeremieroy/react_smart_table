@@ -2,7 +2,7 @@
 experimental work on a data grid like table using react
 
 -- Stories --
-* Render table `<table>`
+* ~~Render table `<table>`~~
 * Extrapolate columns from data
 * Render headers `<tr> <th>...`
 * Render rows `<tr> <td>...</tr> ...`
