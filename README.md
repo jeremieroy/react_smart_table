@@ -2,10 +2,10 @@
 experimental work on a data grid like table using react
 
 -- Stories --
-* Render table <table>
+* Render table `<table>`
 * Extrapolate columns from data
-* Render headers <tr> <th>...
-* Render rows <tr> <td>...</tr> ...
+* Render headers `<tr> <th>...`
+* Render rows `<tr> <td>...</tr> ...`
 * Colums are sortables
 * Header stay visible (stick on screen limited by area)
 * Table is filterable globally
