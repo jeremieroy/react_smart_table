@@ -13,9 +13,22 @@
     <!-- page content -->
     <div id="smart_table1">Lorem ipsum</div> 
     <script>
+      
+      var rowCount = 200;
+      var columnCount = 10;
+      var data=[];
+      for(var row=0; row<200;row++)
+      {
+        var cell = {};
+        for(var col=0; col<10;col++)
+        {
+          cell["column"+col.toString()] = row.toString()+" "+col.toString();
+        }
+        data.push(cell);
+      }
       var Table = React.createFactory(ReactSmartTable.Table);
       React.render(
-        Table({foo:"bar"}),
+        Table({data:data}),
         document.getElementById('smart_table1')    
       );
     </script>
