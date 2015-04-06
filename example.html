@@ -7,14 +7,18 @@
     <!--link rel="stylesheet" href="react_smart_table.css" -->
     <!-- js -->
     <script src="https://fb.me/react-0.13.1.js"></script>    
-    <script src="react_smart_table.js"></script>
-	<script>
-		ReactSmartTable.testMe();
-    </script>
+    <script src="react_smart_table.js"></script>	   
   </head>
   <body>
     <!-- page content -->
-    <div id="smart_table1">Lorem ipsum</div>    
+    <div id="smart_table1">Lorem ipsum</div> 
+    <script>
+      var Table = React.createFactory(ReactSmartTable.Table);
+      React.render(
+        Table({foo:"bar"}),
+        document.getElementById('smart_table1')    
+      );
+    </script>
   </body>
 </html>
 

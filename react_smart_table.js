@@ -9,8 +9,29 @@
 }(this, function (React) {
     "use strict";
     var exports = {};
-    exports.testMe = function(){
-        console.log("I'm accessible !");
-    }
+
+    var Table = exports.Table = React.createClass({displayName: "Table",
+        getDefaultProps: function() {
+            var defaultProps = {                
+            };
+            return defaultProps;
+        },
+        getInitialState: function() {
+            var initialState = {                
+            };            
+            return initialState;
+        },
+        render: function() {
+            return React.createElement("table", {}, [
+                React.createElement("thead", {key: "thead"}, 
+                    null
+                ),
+                React.createElement("tbody", {key: "tbody"}, 
+                    null
+                )
+            ]);
+        }
+    });
+        
     return exports;
 }));
