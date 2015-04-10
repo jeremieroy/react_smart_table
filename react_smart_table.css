@@ -1,0 +1,10 @@
+/*.smarttable
+"glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top"*/
+
+/* Table Sorter */
+.rst_cell {
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
