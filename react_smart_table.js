@@ -167,8 +167,8 @@
 
             var left_header = 
                 React.DOM.table({ style:{tableLayout:'fixed', width:"100%", height:"100%"} }, 
-                        React.DOM.tr( {}, left_th_list )
-                    );
+                    React.DOM.tr( {}, left_th_list )
+                );
 
             var right_header = 
                 React.DOM.table({ style:{tableLayout:'fixed', width:"100%", height:"100%"}},                         
@@ -179,15 +179,15 @@
                 React.DOM.table({ style:{tableLayout:'fixed', width:"100%", height:"100%"} }, left_tr_list
                 );
 
-            var right_body = /*React.DOM.div({style:right_body_tyle, onScroll:this.handleScroll, ref:"right_body"}, */
+            var right_body = 
                 React.DOM.table({ style:{tableLayout:'fixed', width:"100%", height:"100%"} }, right_tr_list
                 );
 
             var container = 
                 React.DOM.table( { style:{tableLayout:'fixed', width:w+'px', height:h+'px'} }, 
                     React.DOM.tr({},
-                        React.DOM.td( {style:{width:lw+'px', height:th+'px'}} , left_header),
-                        React.DOM.td( {style:{width: rw+'px', height:th+'px'}} , 
+                        React.DOM.td( {style:{width:lw+'px'}} , left_header),
+                        React.DOM.td({} , 
                             React.DOM.div( {style:{width: rw+'px',height:th+'px', overflowX: 'hidden', overflowY: 'hidden'} , ref:"right_header", onScroll:this.handleScroll} , right_header)
                         )
                     ),
