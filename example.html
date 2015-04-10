@@ -34,14 +34,14 @@
           return text;
       }
       
-      var rowCount = 200;
-      var columnCount = 10;
+      var rowCount = 500;
+      var columnCount = 50;
       var data=[];
-      for(var row=0; row<200;row++)
+      for(var row=0; row<rowCount;row++)
       {
         var item = {};
         item["id"] = row;
-        for(var col=0; col<10;col++)
+        for(var col=0; col<columnCount;col++)
         {
           item["column"+col.toString()] = randomString(3);          
         }
