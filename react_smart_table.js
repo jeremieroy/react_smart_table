@@ -25,27 +25,44 @@
         };
     }
 
+    function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val))
+    }
+
     var Grid = exports.Grid = React.createClass({displayName: "Grid",
         getDefaultProps: function() {
             return {
-                width:200,
-                height:200,                
-                overflowX:"hidden",
-                overflowY:"hidden",
-                rows:[ 80,80,80,80,80,80 ],
-                columns:[ 60,60,60,60, 60, 60, 60, 60, 60],
-                cellRenderer : function(row, col, width, height) {
-                    return  row+":"+col;
-                },
+                width:200,  // fixed width
+                height:200, // fixed height
+                overflowX:"hidden", // 'hidden', 'auto', 'overflow'
+                overflowY:"hidden", // 'hidden', 'auto', 'overflow'
+                // optional dataset, to use with default getters below
+                data:[],
+                // return the number of rows
+                rowsCountGetter: function(){ return this.data.length; },
+                // return the data associated with the row[index]
+                rowDataGetter: function(index) { return this.data[index]; },
+                // return the class that must be used of the row[index]
+                rowClassGetter: function(index){ return "row"; },
+                rowHeight:30, // should be a getter ?
+                columns:[{
+                    width:60,
+                    dataKey:'id', //could be a number
+                    cellDataGetter:function(key, rowData) {
+                        return  rowData[key];
+                    },
+                    cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+                        //column.dataKey
+                        return columnIndex+':'+rowIndex+'='+cellData;
+                    }
+                }],
                 onScroll:null,
             };
         },
         getInitialState: function() {
             return {
                 scrollTop:0,
-                scrollLeft:0,
-                width:this.props.width,
-                height:this.props.height
+                scrollLeft:0
             };
         },
         componentWillMount: function() {
@@ -53,75 +70,29 @@
             this.computeExtents();
         },
         computeExtents: function() {
-            var rowsExtents = [0];
             var colsExtents = [0];
             var val = 0;
-            for(var i=0, len = this.props.rows.length ; i<len; i++) {
-                val+=this.props.rows[i];
-                rowsExtents.push(val);
-            }
-
-            val = 0;
             for(var i=0, len = this.props.columns.length ; i<len; i++) {
-                val+=this.props.columns[i];
+                val+=this.props.columns[i].width;
                 colsExtents.push(val);
             }
-
-            this.rowsExtents = rowsExtents;
             this.colsExtents = colsExtents;
-        },
-        getVisibleSlice2: function (extents, x_start, x_end)
-        {
-            //assert extents.length > 0
-            var i=0, len = extents.length;
-            while( i<len && extents[i] < x_start) { i++; }
-            var beginID = Math.max(0, i-1);
-            var beginSpacer = extents[beginID];
-            while( i<len && extents[i] < x_end) { i++; }
-            var endID = Math.min(i, len-1);            
-            var endSpacer = extents[len-1]-extents[endID];            
-
-            var ret= {
-                from:beginID,
-                to:endID,
-                beforeSize:beginSpacer,
-                afterSize:endSpacer
-            };
-            return ret;
         },
         getVisibleSlice: function (extents, minVal, maxVal)
         {
             var i=1, len = extents.length;
-            if(extents<2) 
+            if(len<2)
                 return {begin:0, end:0};
-            
+
             while( i<len && extents[i] < minVal) { i++;}
-            var begin = i-1;            
-            while( i<len && extents[i] < maxVal) { i++; }                   
-            var end = i;                   
+            var begin = i-1;
+
+            len--;
+            while( i<len && extents[i] < maxVal) { i++; }
+            var end = i;// Math.min(i,len-1);
             return {begin:begin, end:end};
         },
-        cellRenderer : function(key, row, col, width, height) {
-            var style = {
-                display:"inline-block",
-                width:width,
-                height:height
-            };
-            return React.DOM.div( {style:style, key:key} , this.props.cellRenderer(row, col, width, height));
-        },
-        cellRenderer2 : function(key, row, col, x, y, width, height) {
-            var style = {                
-                //position:"absolute",
-                left: x,
-                top: y,
-                width:width,
-                height:height
-                //overflowX: 'hidden',
-                //overflowY: 'hidden'
-            };
-            return React.DOM.div( {style:style, key:key, className:"rst_cell"} , this.props.cellRenderer(row, col, width, height));
-        },
-        handleScroll: function(e) {           
+        handleScroll: function(e) {
             this.setState({
                 scrollTop :e.target.scrollTop,
                 scrollLeft:e.target.scrollLeft
@@ -129,108 +100,65 @@
             if(this.props.onScroll)
                 this.props.onScroll(e);
         },
-        render2: function() {
-            // viewport size
-            var width = this.state.width;
-            var height = this.state.height;            
-            // inner frame
-            var innerWidth = this.colsExtents[this.colsExtents.length-1];
-            var innerHeight = this.rowsExtents[this.rowsExtents.length-1];
-
-            // inner frame  decal
-            var scrollLeft = this.state.scrollLeft;
-            var scrollTop = this.state.scrollTop;
-
-            var rowSlice = this.getVisibleSlice(this.rowsExtents, scrollTop, scrollTop + height);
-            var colSlice = this.getVisibleSlice(this.colsExtents, scrollLeft, scrollLeft + width);
-
-            var topHeight = rowSlice.beforeSize;
-            var botHeight = rowSlice.afterSize;
-            var midHeight = innerHeight - topHeight - botHeight;
-            var leftWidth = colSlice.beforeSize;
-            var rightWidth = colSlice.afterSize;
-            var midWidth = innerWidth - leftWidth - rightWidth;
-
-            var inner_rows = [];
-            var keyID=0;
-            // compute central cells
-            for(var row = rowSlice.from; row <= rowSlice.to; ++row) {
-                var inner_cols = [];
-                for(var col = colSlice.from; col <= colSlice.to; ++col) {
-                    inner_cols.push(this.cellRenderer(keyID, row, col, this.props.rows[row], this.props.columns[col]  ));
-                    keyID++;
-                }
-                inner_rows.push( React.DOM.div( {style:{width:midWidth}, key:row }, inner_cols ));
-            }
-
-              
-           
-
-
-            var top_spacer =  React.DOM.div( {style:{width:innerWidth, height:topHeight}});
-
-            var left_spacer =  React.DOM.div( { style:{ background:"blue", display:"inline-block", width:leftWidth, height:midHeight }});
-            var center_block =  React.DOM.div( {style:{background:"red", display:"inline-block", width:midWidth, height:midHeight }}, inner_rows);
-            var right_spacer = React.DOM.div( {style:{background:"green", display:"inline-block", width:rightWidth, height:midHeight }});
-
-            var mid_block = React.DOM.div({style:{width:innerWidth}},
-                (leftWidth>0) ? left_spacer: null,
-                (midWidth>0) ? center_block: null,
-                (rightWidth>0) ? right_spacer: null
-            );
-
-            var bottom_spacer =  React.DOM.div( {style:{width:innerWidth, height:botHeight}});
-
-             var container =
-                React.DOM.div( { style:{display: 'inline-block'} },
-                    (topHeight>0) ? top_spacer: null,
-                    (midHeight>0) ? mid_block: null,
-                    (botHeight>0) ? bottom_spacer: null
-
-                );                
-            return React.DOM.div( 
-                {   scrollTop:this.state.scrollTop,
-                    scrollLeft:this.state.scrollLeft, 
-                    style:{ 
-                        width:width, 
-                        height:height,
-                        overflowX:this.props.overflowX, 
-                        overflowY:this.props.overflowY
-                    },
-                    onScroll:this.handleScroll
-                }, container);
-        },
         render: function() {
             // viewport size
-            var width = this.state.width;
-            var height = this.state.height;
-            // inner frame
-            var innerWidth = this.colsExtents[this.colsExtents.length-1];
-            var innerHeight = this.rowsExtents[this.rowsExtents.length-1];
+            var width = this.props.width;
+            var height = this.props.height;
 
-            // inner frame  decal
+            var rowCount = this.props.rowsCountGetter();
+
+            // inner frame size
+            var innerWidth = this.colsExtents[this.colsExtents.length-1];
+            var innerHeight = rowCount * this.props.rowHeight;
+
+            // inner frame decal
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
 
-            var rowSlice = this.getVisibleSlice(this.rowsExtents, scrollTop, scrollTop + height);
+            var rowSlice = {};
+            rowSlice.begin = clamp(Math.floor(scrollTop / this.props.rowHeight), 0, rowCount-1);
+            rowSlice.end = clamp(Math.ceil((scrollTop+height) / this.props.rowHeight), 0, rowCount-1);
+
+            //var rowSlice = this.getVisibleSlice(this.rowsExtents, scrollTop, scrollTop + height);
             var colSlice = this.getVisibleSlice(this.colsExtents, scrollLeft, scrollLeft + width);
-           
-            var cells = [];            
-            // compute central cells            
-            for(var row = rowSlice.begin; row < rowSlice.end; ++row) {       
-                var keyID = (row -rowSlice.begin) * this.props.columns.length;         
-                for(var col = colSlice.begin; col < colSlice.end; ++col) {
-                    cells.push(this.cellRenderer2(keyID + col, row, col, this.colsExtents[col], this.rowsExtents[row], this.props.columns[col] , this.props.rows[row] ));                    
+
+            var cells = [];
+
+            // compute central cells
+            for(var rowIndex = rowSlice.begin; rowIndex < rowSlice.end; rowIndex++) {
+                var rowData = this.props.rowDataGetter(rowIndex);
+
+                var reactKeyBase = (rowIndex-rowSlice.begin) * this.props.columns.length;
+                for(var colIndex = colSlice.begin; colIndex < colSlice.end; colIndex++) {
+                    var column = this.props.columns[colIndex];
+                    var cellData = (column.cellDataGetter) ?
+                        column.cellDataGetter(column.dataKey, rowData):
+                        rowData[column.dataKey];
+
+                    var cellElem = (column.cellRenderer) ?
+                        column.cellRenderer(cellData, rowData, rowIndex, column, colIndex):
+                        cellData;
+
+                    var style = {
+                        //position:"absolute",
+                        //overflowX: 'hidden',
+                        //overflowY: 'hidden',
+                        left: this.colsExtents[colIndex],
+                        top: rowIndex*this.props.rowHeight,
+                        width:column.width,
+                        height:this.props.rowHeight
+                    };
+                    cells.push( React.DOM.div( {style:style, key:reactKeyBase+colIndex, className:"rst_cell"}, cellElem) );
                 }
             }
-                        
-            return React.DOM.div( 
-                {   scrollTop:this.state.scrollTop,
-                    scrollLeft:this.state.scrollLeft, 
-                    style:{ 
-                        width:width, 
+
+            return React.DOM.div(
+                {   scrollTop:scrollTop,
+                    scrollLeft:scrollLeft,
+                    style:{
+                        width:width,
                         height:height,
-                        overflowX:this.props.overflowX, 
+                        overflowX:this.props.overflowX,
                         overflowY:this.props.overflowY
                     },
                     onScroll:this.handleScroll
@@ -241,13 +169,52 @@
 
 
 
-
-
-
     var Table = exports.Table = React.createClass({displayName: "Table",
-
         getDefaultProps: function() {
             return {
+                width:200,  // fixed width
+                height:200, // fixed height
+                overflowX:"hidden", // 'hidden', 'auto', 'overflow'
+                overflowY:"hidden", // 'hidden', 'auto', 'overflow'
+                rowsCount: 0, // number of rows
+                data:[],
+                // return the number of rows
+                rowsCountGetter: function(){ return this.data.length; },
+                // return the data associated with the row[index]
+                rowDataGetter: function(index) { return this.data[index]; },
+                // return the class that must be used of the row[index]
+                rowClassGetter: function(index){ return "row"; },
+                rowHeight:30, // should be a getter ?
+                headerHeight:30,
+                fixedColumns:[{
+                    // required
+                    width:60,
+                    dataKey:'id', //could be a number
+                    // optional
+                    label:"Id",
+                    cellDataGetter:function(key, rowData) {
+                        return  rowData[key];
+                    },
+                    cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+                        //column.dataKey
+                        return columnIndex+':'+rowIndex+'='+cellData;
+                    },
+                    headerRenderer:function(column, columnIndex) {
+                        return column.label;
+                    }
+                }],
+                columns:[{
+                    width:60,
+                    dataKey:'id', //could be a number
+                    cellDataGetter:function(key, rowData) {
+                        return  rowData[key];
+                    },
+                    cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+                        //column.dataKey
+                        return columnIndex+':'+rowIndex+'='+cellData;
+                    }
+                }],
+
                 filterByColumn: false,
                 tableClass: "table",
                 sortNeutralClass: "sort-neutral",
@@ -258,13 +225,8 @@
         getInitialState: function() {
             this.SB = detectScrollbarWidthHeight();
             return {
-                data : this.props.data, // TODO: fix antipattern
                 sortOrderAscending: true,
-                sortColumn: "id",
-                scrollTop:0,
-                scrollLeft:0,
-                innerWidth:1850,
-                innerHeight:900
+                sortColumn: "id"
             };
         },
         getColumns: function() {
@@ -460,35 +422,55 @@
 
                 );
         },
-        render:function() {                
-            var prop = {      
+        render:function() {
+            var left_header;
+            var right_header;
+            var left_body;
+            var right_body;
+
+
+            var rows_count = 5000;
+            var cols_count = 200;
+            var data = [];
+            var columns = [];
+
+            for (var i =0; i< rows_count; i++) {
+                data.push( {id:i} );
+            }
+
+            for (var i =0; i< cols_count; i++) {
+                columns.push({
+                    width:100,
+                    dataKey:i,
+                    cellDataGetter:function(key, rowData) {
+                        return  rowData[key];
+                    },
+                    cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+                        return columnIndex + ':' + rowIndex;
+                    }
+                });
+            }
+
+            var prop = {
                 width:1500,
-                height:800,
+                height:750,
                 overflowX:"scroll",
                 overflowY:"scroll",
-                rows:[],
-                columns:[],
+                rowsHeight:30,
+                columns:columns,
+                data:data,
                 cellRenderer : function(row, col, width, height) {
                     return  row+":"+col;
                 },
-                onScroll:function(e) { 
-                    //console.log('scroll'); 
+                onScroll:function(e) {
+                    //console.log('scroll');
                 }
             };
-
-            var rows = 500;
-            var cols = 50;
-
-            for (var i =0; i< rows; i++)
-                prop.rows.push( 25 );                    
-        
-            for (var i =0; i< cols; i++)
-                prop.columns.push( 40 );
 
             var G = React.createFactory(Grid);
             return G( prop );
         }
-        
+
     });
 
     return exports;

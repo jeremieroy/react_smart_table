@@ -6,21 +6,21 @@
     <!-- css -->
     <link rel="stylesheet" href="react_smart_table.css" >
     <!-- js -->
-    <script src="https://fb.me/react-0.13.1.js"></script>    
+    <script src="https://fb.me/react-0.13.1.js"></script>
     <script src="react_smart_table.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <!-- Optional theme 
+    <!-- Optional theme
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
     -->
-    <!-- Latest compiled and minified JavaScript 
+    <!-- Latest compiled and minified JavaScript
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     -->
 
   </head>
   <body>
     <!-- page content -->
-    <div id="smart_table1">Lorem ipsum</div> 
+    <div id="smart_table1">Lorem ipsum</div>
     <script>
 
       function randomString(length)
@@ -33,9 +33,9 @@
 
           return text;
       }
-      
-      var rowCount = 500;
-      var columnCount = 50;
+
+      var rowCount = 1;
+      var columnCount = 1;
       var data=[];
       for(var row=0; row<rowCount;row++)
       {
@@ -43,14 +43,14 @@
         item["id"] = row;
         for(var col=0; col<columnCount;col++)
         {
-          item["column"+col.toString()] = randomString(3);          
+          item["column"+col.toString()] = randomString(3);
         }
         data.push(item);
       }
       var Table = React.createFactory(ReactSmartTable.Table);
       React.render(
         Table({ data:data}),
-        document.getElementById('smart_table1')    
+        document.getElementById('smart_table1')
       );
 
       window.React = React;
