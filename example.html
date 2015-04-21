@@ -20,7 +20,7 @@
   </head>
   <body>
     <!-- page content -->
-    <div id="smart_table1">Lorem ipsum</div>
+    <div id="smart_table1" >Lorem ipsum</div>
     <script>
 
       function randomString(length)
@@ -34,22 +34,49 @@
           return text;
       }
 
-      var rowCount = 1;
-      var columnCount = 1;
-      var data=[];
+      //generate a random dataset
+      var rowCount = 1000;
+      var columnCount = 200;
+      var data = [];
       for(var row=0; row<rowCount;row++)
       {
         var item = {};
         item["id"] = row;
         for(var col=0; col<columnCount;col++)
         {
-          item["column"+col.toString()] = randomString(3);
+          item["column_"+col] = randomString(3);
         }
         data.push(item);
       }
-      var Table = React.createFactory(ReactSmartTable.Table);
+
+      //generate column configs
+
+      var fixedColumns = [{
+        width:50,
+        label:"ID"
+      }];
+      var columns = [];
+      for(var col=0; col<columnCount;col++)
+      {
+          columns.push({
+            width:80,
+            label:"column_"+col
+          });
+      }
+
       React.render(
-        Table({ data:data}),
+        ReactSmartTable.Table({
+            width:1500,
+            height:750,
+            overflowX:"scroll",
+            overflowY:"scroll",
+            fixedColumns:fixedColumns,
+            columns:columns,
+            rowsCountGetter: function(){ return this.data.length; },
+            rowDataGetter: function(index) { return this.data[index]; },
+            rowHeightGetter: function(index) { return 30; },
+            data:data
+           }),
         document.getElementById('smart_table1')
       );
 
