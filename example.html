@@ -53,6 +53,7 @@
 
       var fixedColumns = [{
         width:50,
+        dataKey:"id",
         label:"ID"
       }];
       var columns = [];
@@ -60,7 +61,8 @@
       {
           columns.push({
             width:80,
-            label:"column_"+col
+            dataKey:"column_"+col,
+            label:"COLUMN_"+col
           });
       }
 
@@ -72,6 +74,7 @@
             overflowY:"scroll",
             fixedColumns:fixedColumns,
             columns:columns,
+            headerHeight: 60,
             rowsCountGetter: function(){ return this.data.length; },
             rowDataGetter: function(index) { return this.data[index]; },
             rowHeightGetter: function(index) { return 30; },

@@ -1,3 +1,23 @@
+/*
+Extrapolate columns from data
+Colums are sortables (js or SQL)
+Header stay visible (stick on screen limited by area)
+Table is filtrable per column.
+standard search widgets for columns header :
+daterange
+numericrange
+multiselect sur categorical
+text seach
+Rows can use custom component
+Cell can use custom component (blank cells are grayed by default)
+Visibles Columns are selectables via dropdown select
+Data is paginable for sql paginated data,
+Record count is always visible
+Pagination is shown
+
+*/
+
+
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) { // AMD
         define(['react'], factory);
@@ -394,7 +414,6 @@
                             React.DOM.div( {style:{width: rw,height:bh, overflowX: 'scroll', overflowY: 'scroll'} , ref:"right_body", onScroll:this.handleScroll} , right_body)
                         )
                     )
-
                 );
         },
         handleLeftBodyScroll: function(e) {
@@ -408,10 +427,15 @@
             this.refs.right_header.setState({scrollLeft: e.target.scrollLeft});
             this.refs.right_header.getDOMNode().scrollLeft = e.target.scrollLeft;
         },
+        headerRenderer:function(rowData, rowIndex, column, columnIndex) {
+            if('label' in rowData)
+                return rowData.label;
+            else
+                return rowData.dataKey;
+        },
         render:function() {
             var grids = [];
             var fixedWidth = 0;
-
 
             /*
             var cellData = (column.cellDataGetter) ?
@@ -436,9 +460,7 @@
 
                     headerColumns.push({
                         width: column.width,
-                        cellRenderer:function(rowData, rowIndex, column, columnIndex) {
-                            return rowData.label;
-                        }
+                        cellRenderer:this.headerRenderer
                     });
 
                     bodyColumns.push({
@@ -460,7 +482,7 @@
                     overflowY: "hidden",
                     rowsCountGetter: function(){ return this.data.length; },
                     rowDataGetter: function(index) { return this.data[index]; },
-                    rowHeightGetter: function(index) { return 30; },
+                    rowHeightGetter: function(index) { return this.height; },
                     columns: headerColumns,
                     data: this.props.fixedColumns
                 };
@@ -477,7 +499,7 @@
                     overflowY: "hidden",
                     rowsCountGetter: function(){ return this.data.length; },
                     rowDataGetter: function(index) { return this.data[index]; },
-                    rowHeightGetter: function(index) { return 30; },
+                    rowHeightGetter: this.props.rowHeightGetter,
                     columns: bodyColumns,
                     data: this.props.data
                     //onScroll: this.handleLeftBodyScroll
@@ -499,9 +521,7 @@
 
                     headerColumns.push({
                         width: column.width,
-                        cellRenderer:function(rowData, rowIndex, column, columnIndex) {
-                            return rowData.label;
-                        }
+                        cellRenderer:this.headerRenderer
                     });
 
                     bodyColumns.push({
@@ -523,7 +543,7 @@
                     overflowY: "hidden",
                     rowsCountGetter: function(){ return this.data.length; },
                     rowDataGetter: function(index) { return this.data[index]; },
-                    rowHeightGetter: function(index) { return 30; },
+                    rowHeightGetter: function(index) { return this.height; },
                     columns: headerColumns,
                     data: this.props.columns
                 };
@@ -540,7 +560,7 @@
                     overflowY: "scroll",
                     rowsCountGetter: function(){ return this.data.length; },
                     rowDataGetter: function(index) { return this.data[index]; },
-                    rowHeightGetter: function(index) { return 30; },
+                    rowHeightGetter: this.props.rowHeightGetter,
                     columns: bodyColumns,
                     data: this.props.data,
                     onScroll: this.handleRightBodyScroll
