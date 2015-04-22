@@ -186,8 +186,7 @@ Pagination is shown
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
         },
-        sortClass: function(column) {
-            return '';
+        sortClass: function(column) {            
             var ascOrDesc = (this.state.sortOrderAscending) ? "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top";
             return (this.state.sortColumn == column) ? ascOrDesc : "";
         },           
@@ -209,15 +208,16 @@ Pagination is shown
                         this.props.defaultColumn.headerRenderer(column, i);
 
                 var style = {
-                    //position:"absolute",
-                    //overflowX: 'hidden',
-                    //overflowY: 'hidden',
+                    position:"absolute",
+                    overflowX: 'hidden',
+                    overflowY: 'hidden',
                     top: 0,
                     left: extents[i], 
                     width: extents[i+1]-extents[i], 
                     height: this.props.headerHeight
                 };                
-                cells.push( React.DOM.div( {style:style, key:i, className:"rst_cell", onClick:this.sortColumn(column.dataKey) }, cellElem) );
+                //className:"rst_cell"
+                cells.push( React.DOM.div( {style:style, key:i, onClick:this.sortColumn(column.dataKey), className:"header " + this.sortClass(column.dataKey) }, cellElem) );
             }
             return cells;
         },
