@@ -81,7 +81,7 @@ Pagination is shown
                     dataKey:"id",
                     label:"Id",
                     width:60,
-                    isVisible:true,                    
+                    isVisible:true,
                     cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
                         return cellData;
                     },
@@ -179,18 +179,9 @@ Pagination is shown
             while( i<len && extents[i] < maxVal) { i++; }
             var end = i;// Math.min(i,len-1);
             return {begin:begin, end:end};
-        },
-        getColumns: function() {
-            var columns = Object.keys(this.props.data[0]);
-            /*for(var i=0;i<columns.length;i++)
-            {
-                columns[i].width = 80;
-            } */
-            return columns;
-        },
-        setSortColumn: function(column) {
-            return function(event) {
-                console.log("setSortColumn:"+column)
+        },        
+        sortColumn: function(column) {
+            return function(event) {                
                 var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
@@ -226,7 +217,7 @@ Pagination is shown
                     width: extents[i+1]-extents[i], 
                     height: this.props.headerHeight
                 };                
-                cells.push( React.DOM.div( {style:style, key:i, className:"rst_cell"}, cellElem) );
+                cells.push( React.DOM.div( {style:style, key:i, className:"rst_cell", onClick:this.sortColumn(column.dataKey) }, cellElem) );
             }
             return cells;
         },
@@ -271,7 +262,7 @@ Pagination is shown
             // sort the items
             var sortedColumn = this.state.sortColumn;
             var order = this.state.sortOrderAscending?1:-1;
-            var key = "id";//this.state.sortColumn.dataKey;
+            var key = sortedColumn;//this.state.sortColumn.dataKey;
 
             items.sort( function(x,y){
                 return (x[key] === y[key])? 0: (x[key] > y[key] ? order : -order);
@@ -295,7 +286,7 @@ Pagination is shown
             var innerWidth = columnsExtents[columnsExtents.length-1];
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
-            // right body frame decal
+            // right body decal
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
             var rowSlice = this.getVisibleSlice(rowsExtents, scrollTop, scrollTop + height);
