@@ -52,11 +52,12 @@
       //generate column configs
 
       var fixedColumns = [{
-        width:50,
+        width:80,
         dataKey:"id",
         label:"ID"
       }];
       var columns = [];
+      
       for(var col=0; col<columnCount;col++)
       {
           columns.push({
@@ -69,12 +70,13 @@
       React.render(
         ReactSmartTable.Table({
             width:1500,
-            height:750,
+            height:500,
             overflowX:"scroll",
             overflowY:"scroll",
+            autoGenerateColumns:true,
             fixedColumns:fixedColumns,
             columns:columns,
-            headerHeight: 60,
+            headerHeight: 30,
             rowsCountGetter: function(){ return this.data.length; },
             rowDataGetter: function(index) { return this.data[index]; },
             rowHeightGetter: function(index) { return 30; },
