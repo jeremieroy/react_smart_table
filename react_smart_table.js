@@ -50,38 +50,38 @@ Pagination is shown
         return Math.max(min, Math.min(max, val))
     }
 
+/*    var Header = React.createClass({displayName: "Header",
+        getDefaultProps: function() {
+            sorted:true
+        },
+        a:0
+    });
+*/
+
+
     var T = React.createClass({displayName: "Table",
         getDefaultProps: function() {
             return {
                 width:200,  // fixed width
                 height:200, // fixed height                
-                headerHeight:30,       // height of the header
-                autoGenerateColumns:false,  // generate columns from the first elem in data
-
-                data:[],
-                // return the number of rows
-                rowsCountGetter: function(){ return this.data.length; },
-                // return the data associated with the row[index]
-                rowDataGetter: function(index) { return this.data[index]; },
-                // return the class that must be used of the row[index]
-                rowClassGetter: function(index){ return "row"; },
+                headerHeight:30,  // height of the header
+                rowHeight:30,    // height of a row
+                items:[],                             
+                autoGenerateColumns:false,  // generate columns from the first item                
                 // generate columns from the data
                 autoColumnsGetter: function() {
-                    var columnsField = Object.keys(this.data[0]);
+                    var columnsField = Object.keys(this.items[0]);
                     var columns = [];
                     for(var i=0;i<columnsField.length;i++) {
                         columns.push({ dataKey: columnsField[i] });
                     }
                     return columns;
-                },
+                },                
                 defaultColumn:{
                     dataKey:"id",
                     label:"Id",
                     width:60,
-                    isVisible:true,
-                    cellDataGetter:function(rowData, rowIndex, column, columnIndex) {
-                        return rowData[column.dataKey];
-                    },
+                    isVisible:true,                    
                     cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
                         return cellData;
                     },
@@ -106,8 +106,8 @@ Pagination is shown
             return {
                 scrollTop:0,
                 scrollLeft:0,
-                sortOrderAscending: true,
-                sortColumn: "id",
+                sortOrderAscending: false,
+                sortColumn: null,
                 visibleColumns:[],
                 visibleFixedColumns:[]
             };
@@ -145,10 +145,6 @@ Pagination is shown
                 }                
             }
 
-            this.fixedColsExtents = this.computeColumnExtents(fixedColumns);
-            this.colsExtents = this.computeColumnExtents(columns);
-            this.rowsExtents = this.computeRowExtents();
-
             this.setState( { 
                 visibleFixedColumns:fixedColumns,
                 visibleColumns:columns
@@ -162,10 +158,10 @@ Pagination is shown
             }
             return extents;
         },
-        computeRowExtents: function() {
+        computeRowExtents: function(items) {
             var extents = [0], val = 0;
-            for(var i=0, len = this.props.rowsCountGetter(); i<len; i++) {
-                val+=this.props.rowHeightGetter(i);
+            for(var i=0, len = items.length; i<len; i++) {
+                val+=this.props.rowHeight;
                 extents.push(val);
             }
             return extents;
@@ -192,9 +188,9 @@ Pagination is shown
             } */
             return columns;
         },
-        sortColumn: function(column) {
+        setSortColumn: function(column) {
             return function(event) {
-                console.log("column:"+column)
+                console.log("setSortColumn:"+column)
                 var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
@@ -204,13 +200,14 @@ Pagination is shown
             var ascOrDesc = (this.state.sortOrderAscending) ? "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top";
             return (this.state.sortColumn == column) ? ascOrDesc : "";
         },           
-        handleRightBodyScroll: function(e) {
+        handleRightBodyScroll: function(e) {            
             this.setState({
                 scrollTop :e.target.scrollTop,
                 scrollLeft:e.target.scrollLeft
-            });
-            this.refs.left_body.getDOMNode().scrollTop = e.target.scrollTop;            
-            this.refs.right_header.getDOMNode().scrollLeft = e.target.scrollLeft;
+            }, function(){                
+                this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;            
+                this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
+            }.bind(this));
         },
         renderHeader: function(colSlice, columns, extents) {
             var cells = [];
@@ -233,16 +230,17 @@ Pagination is shown
             }
             return cells;
         },
-        renderBody: function(colSlice, rowSlice, columns, extents) {
+        renderBody: function(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents) {
             var cells = [];       
             for(var j = rowSlice.begin; j < rowSlice.end; j++) {
-                var rowData = this.props.rowDataGetter(j);
+                var rowData = items[j];
                 var reactKeyBase = (j) * columns.length;
                 for(var i = colSlice.begin; i < colSlice.end; i++) {
                     var column = columns[i];
-                    var cellData = ('cellDataGetter' in column)? 
-                            column.cellDataGetter(rowData, j, column, i):
-                            this.props.defaultColumn.cellDataGetter(rowData, j, column, i);
+                    //var cellData = ('cellDataGetter' in column)? 
+                    //        column.cellDataGetter(rowData, column):
+                    //        this.props.defaultColumn.cellDataGetter(rowData, column);
+                    var cellData = rowData[column.dataKey];                            
 
                     var cellElem = ('cellRenderer' in column)?
                             column.cellRenderer(cellData, rowData, j, column, i):
@@ -252,22 +250,38 @@ Pagination is shown
                         //position:"absolute",
                         //overflowX: 'hidden',
                         //overflowY: 'hidden',
-                        top: this.rowsExtents[j],
-                        left: extents[i],                        
-                        width:extents[i+1]-extents[i], 
-                        height: this.props.rowHeightGetter(j)
+                        top: rowsExtents[j],
+                        left: columnsExtents[i],                        
+                        width:columnsExtents[i+1]-columnsExtents[i], 
+                        height: this.props.rowHeight
                     };
                     cells.push( React.DOM.div( {style:style, key:reactKeyBase+i, className:"rst_cell"}, cellElem) );
                 }
             }
             return cells;
-        },
+        },        
         render: function() {
-            /*
-            this.colsExtents = computeColumnExtents(this.props.columns);
-            this.fixedColsExtents = computeColumnExtents(this.props.fixedColumns);
-            this.rowsExtents = computeRowExtents();
-            */
+
+            // filter the items
+            var filterFunc = function (value) {
+              return true;
+            }
+            var items = this.props.items.filter(filterFunc);
+
+            // sort the items
+            var sortedColumn = this.state.sortColumn;
+            var order = this.state.sortOrderAscending?1:-1;
+            var key = "id";//this.state.sortColumn.dataKey;
+
+            items.sort( function(x,y){
+                return (x[key] === y[key])? 0: (x[key] > y[key] ? order : -order);
+            });
+            
+            //recompute extents            
+            var rowsExtents = this.computeRowExtents(items);
+            var fixedColumnsExtents = this.computeColumnExtents(this.state.visibleFixedColumns);
+            var columnsExtents = this.computeColumnExtents(this.state.visibleColumns);
+            
             // viewport size
             var width = this.props.width;
             var height = this.props.height;
@@ -275,17 +289,16 @@ Pagination is shown
             var headerHeight = this.props.headerHeight;          
             var bodyHeight = height - headerHeight;
 
-            var leftWidth = this.fixedColsExtents[this.fixedColsExtents.length-1];
+            var leftWidth = fixedColumnsExtents[fixedColumnsExtents.length-1];
             var rightWidth = width - leftWidth;
 
-            var innerWidth = this.colsExtents[this.colsExtents.length-1];
-            var innerHeight = this.rowsExtents[this.rowsExtents.length-1];
+            var innerWidth = columnsExtents[columnsExtents.length-1];
+            var innerHeight = rowsExtents[rowsExtents.length-1];
 
             // right body frame decal
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
-            
-            var rowSlice = this.getVisibleSlice(this.rowsExtents, scrollTop, scrollTop + height);
+            var rowSlice = this.getVisibleSlice(rowsExtents, scrollTop, scrollTop + height);
             var grids = [];            
            
             var columns = this.state.visibleFixedColumns;
@@ -293,8 +306,8 @@ Pagination is shown
             if( columns.length > 0 )
             {
                 var colSlice = {begin:0, end: columns.length};                
-                var headerCells = this.renderHeader(colSlice, columns, this.fixedColsExtents);
-                var bodyCells = this.renderBody(colSlice, rowSlice, columns, this.fixedColsExtents);                
+                var headerCells = this.renderHeader(colSlice, columns, fixedColumnsExtents);
+                var bodyCells = this.renderBody(colSlice, rowSlice, columns, fixedColumnsExtents, items, rowsExtents);   
 
                 var header = 
                     React.DOM.div({
@@ -336,9 +349,9 @@ Pagination is shown
             // compute right header cells and right body cells
             if( columns.length > 0 )
             {
-                var colSlice = this.getVisibleSlice(this.colsExtents, scrollLeft, scrollLeft + rightWidth);                
-                var headerCells = this.renderHeader(colSlice, columns, this.colsExtents);
-                var bodyCells = this.renderBody(colSlice, rowSlice, columns, this.colsExtents);                
+                var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightWidth);                
+                var headerCells = this.renderHeader(colSlice, columns, columnsExtents);
+                var bodyCells = this.renderBody(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents);                
 
                 var header =
                     React.DOM.div({

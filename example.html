@@ -37,7 +37,7 @@
       //generate a random dataset
       var rowCount = 1000;
       var columnCount = 200;
-      var data = [];
+      var items = [];
       for(var row=0; row<rowCount;row++)
       {
         var item = {};
@@ -46,7 +46,7 @@
         {
           item["column_"+col] = randomString(3);
         }
-        data.push(item);
+        items.push(item);
       }
 
       //generate column configs
@@ -77,10 +77,8 @@
             fixedColumns:fixedColumns,
             columns:columns,
             headerHeight: 30,
-            rowsCountGetter: function(){ return this.data.length; },
-            rowDataGetter: function(index) { return this.data[index]; },
-            rowHeightGetter: function(index) { return 30; },
-            data:data
+            rowHeight:40,            
+            items:items
            }),
         document.getElementById('smart_table1')
       );
