@@ -1,10 +1,20 @@
 /*.smarttable
 "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top"*/
 
-/* Table Sorter */
-.rst_cell {
-  position: absolute;
-  overflow-x: hidden;
-  overflow-y: hidden;
+.rst_tr {
+  position: absolute; /* MANDATORY */
 }
+
+.rst_td {
+  position: absolute; /* MANDATORY */
+  overflow-x: hidden; /* MANDATORY */
+  overflow-y: hidden; /* MANDATORY */
+}
+
+.rst_th {
+  position: absolute; /* MANDATORY */
+  overflow-x: hidden; /* MANDATORY */
+  overflow-y: hidden; /* MANDATORY */
+}
+
 

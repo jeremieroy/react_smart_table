@@ -1,20 +1,27 @@
 /*
-Extrapolate columns from data
-Colums are sortables (js or SQL)
-Header stay visible (stick on screen limited by area)
-Table is filtrable per column.
-standard search widgets for columns header :
-daterange
-numericrange
-multiselect sur categorical
-text seach
-Rows can use custom component
-Cell can use custom component (blank cells are grayed by default)
-Visibles Columns are selectables via dropdown select
-Data is paginable for sql paginated data,
-Record count is always visible
-Pagination is shown
+Datatable - Extrapolate columns from data
+Datatable - Colums are sortables (js or SQL)
+Datatable - Header stay visible (stick on screen limited by area)
 
+
+Datatable - Rows can use custom component
+Datatable - Cell can use custom component (blank cells are grayed by default)
+Datatable - Visibles Columns are selectables via dropdown select
+Datatable - Data is paginable for sql paginated data,
+Datatable - Record count is always visible
+Datatable - Pagination is shown
+
+*/
+
+// css
+/*
+table   [fixed size]
+- thead
+- - tr  [fixed height]
+- - - td [fixed width]
+- tbody
+- - tr
+- - - td
 */
 
 
@@ -50,11 +57,32 @@ Pagination is shown
         return Math.max(min, Math.min(max, val))
     }
 
-/*    var Header = React.createClass({displayName: "Header",
+/*
+    var Header = React.createClass({displayName: "Header",
         getDefaultProps: function() {
-            sorted:true
+            column:null,
         },
-        a:0
+        render: function() {
+
+        }
+    });
+
+    var Row = React.createClass({displayName: "Header",
+        getDefaultProps: function() {
+            column:null,
+        },
+        render: function() {
+
+        }
+    });
+
+    var Cell = React.createClass({displayName: "Header",
+        getDefaultProps: function() {
+            column:null,
+        },
+        render: function() {
+
+        }
     });
 */
 
@@ -63,11 +91,11 @@ Pagination is shown
         getDefaultProps: function() {
             return {
                 width:200,  // fixed width
-                height:200, // fixed height                
+                height:200, // fixed height
                 headerHeight:30,  // height of the header
                 rowHeight:30,    // height of a row
-                items:[],                             
-                autoGenerateColumns:false,  // generate columns from the first item                
+                items:[],
+                autoGenerateColumns:false,  // generate columns from the first item
                 // generate columns from the data
                 autoColumnsGetter: function() {
                     var columnsField = Object.keys(this.items[0]);
@@ -76,7 +104,7 @@ Pagination is shown
                         columns.push({ dataKey: columnsField[i] });
                     }
                     return columns;
-                },                
+                },
                 defaultColumn:{
                     dataKey:"id",
                     label:"Id",
@@ -115,7 +143,7 @@ Pagination is shown
         componentWillMount: function() {
             this.SB = detectScrollbarWidthHeight();
             this.initColumnState();
-               
+
         },
         componentWillReceiveProps: function(nextProps) {
             this.initColumnState();
@@ -123,7 +151,7 @@ Pagination is shown
         initColumnState: function() {
             var fixedColumns = [];
             var columns = [];
-            var keys = {}; 
+            var keys = {};
             for(var i=0, len = this.props.fixedColumns.length ; i<len; i++) {
                 var column = this.props.fixedColumns[i];
                 keys[column.dataKey] = true;
@@ -135,17 +163,17 @@ Pagination is shown
                 keys[column.dataKey] = true;
                 columns.push(column);
             }
-            
+
             var generatedColumns = (this.props.autoGenerateColumns) ? this.props.autoColumnsGetter() : [];
             for(var i=0, len = generatedColumns.length; i<len; i++) {
                 var column = generatedColumns[i];
                 if(!(column.dataKey in keys) ){
                     keys[column.dataKey] = true;
                     columns.push(column);
-                }                
+                }
             }
 
-            this.setState( { 
+            this.setState( {
                 visibleFixedColumns:fixedColumns,
                 visibleColumns:columns
             });
@@ -165,7 +193,7 @@ Pagination is shown
                 extents.push(val);
             }
             return extents;
-        },        
+        },
         getVisibleSlice: function (extents, minVal, maxVal)
         {
             var i=1, len = extents.length;
@@ -179,28 +207,30 @@ Pagination is shown
             while( i<len && extents[i] < maxVal) { i++; }
             var end = i;// Math.min(i,len-1);
             return {begin:begin, end:end};
-        },        
+        },
         sortColumn: function(column) {
-            return function(event) {                
+            return function(event) {
                 var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
         },
-        sortClass: function(column) {            
+        sortClass: function(column) {
             var ascOrDesc = (this.state.sortOrderAscending) ? "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top";
             return (this.state.sortColumn == column) ? ascOrDesc : "";
-        },           
-        handleRightBodyScroll: function(e) {            
+        },
+        handleRightBodyScroll: function(e) {
             this.setState({
                 scrollTop :e.target.scrollTop,
                 scrollLeft:e.target.scrollLeft
-            }, function(){                
-                this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;            
+            }, function(){
+                this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
                 this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
             }.bind(this));
         },
         renderHeader: function(colSlice, columns, extents) {
+            var rows = [];
             var cells = [];
+            var j = 0;
             for(var i = colSlice.begin; i<colSlice.end; i++) {
                 var column = columns[i];
                 var cellElem = ('headerRenderer' in column)?
@@ -208,49 +238,50 @@ Pagination is shown
                         this.props.defaultColumn.headerRenderer(column, i);
 
                 var style = {
-                    position:"absolute",
-                    overflowX: 'hidden',
-                    overflowY: 'hidden',
-                    top: 0,
-                    left: extents[i], 
-                    width: extents[i+1]-extents[i], 
-                    height: this.props.headerHeight
-                };                
-                //className:"rst_cell"
-                cells.push( React.DOM.div( {style:style, key:i, onClick:this.sortColumn(column.dataKey), className:"header " + this.sortClass(column.dataKey) }, cellElem) );
+                    top:0,
+                    left: extents[i],
+                    width: extents[i+1]-extents[i]
+                };
+                cells.push( React.DOM.div( {style:style, key:i, className:"rst_th "+this.sortClass(column.dataKey), onClick:this.sortColumn(column.dataKey) }, cellElem) );
             }
-            return cells;
+
+            var style = {
+                top: 0, height: this.props.headerHeight
+            };
+            rows.push( React.DOM.div( {style:style, key:j, className:"rst_tr"}, cells) );
+            return rows;
         },
         renderBody: function(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents) {
-            var cells = [];       
+            var rows = [];
             for(var j = rowSlice.begin; j < rowSlice.end; j++) {
                 var rowData = items[j];
-                var reactKeyBase = (j) * columns.length;
+                var cells = [];
                 for(var i = colSlice.begin; i < colSlice.end; i++) {
+
                     var column = columns[i];
-                    //var cellData = ('cellDataGetter' in column)? 
+                    //var cellData = ('cellDataGetter' in column)?
                     //        column.cellDataGetter(rowData, column):
                     //        this.props.defaultColumn.cellDataGetter(rowData, column);
-                    var cellData = rowData[column.dataKey];                            
+                    var cellData = rowData[column.dataKey];
 
                     var cellElem = ('cellRenderer' in column)?
                             column.cellRenderer(cellData, rowData, j, column, i):
                             this.props.defaultColumn.cellRenderer(cellData, rowData, j, column, i);
 
                     var style = {
-                        //position:"absolute",
-                        //overflowX: 'hidden',
-                        //overflowY: 'hidden',
-                        top: rowsExtents[j],
-                        left: columnsExtents[i],                        
-                        width:columnsExtents[i+1]-columnsExtents[i], 
-                        height: this.props.rowHeight
+                        left: columnsExtents[i],
+                        width:columnsExtents[i+1]-columnsExtents[i]
                     };
-                    cells.push( React.DOM.div( {style:style, key:reactKeyBase+i, className:"rst_cell"}, cellElem) );
+                    cells.push( React.DOM.div( {style:style, key:i, className:"rst_td"}, cellElem) );
                 }
+                var style = {
+                    top: rowsExtents[j],
+                    height: this.props.rowHeight
+                };
+                rows.push( React.DOM.div( {style:style, key:j, className:"rst_tr"}, cells) );
             }
-            return cells;
-        },        
+            return rows;
+        },
         render: function() {
 
             // filter the items
@@ -267,17 +298,17 @@ Pagination is shown
             items.sort( function(x,y){
                 return (x[key] === y[key])? 0: (x[key] > y[key] ? order : -order);
             });
-            
-            //recompute extents            
+
+            //recompute extents
             var rowsExtents = this.computeRowExtents(items);
             var fixedColumnsExtents = this.computeColumnExtents(this.state.visibleFixedColumns);
             var columnsExtents = this.computeColumnExtents(this.state.visibleColumns);
-            
+
             // viewport size
             var width = this.props.width;
             var height = this.props.height;
 
-            var headerHeight = this.props.headerHeight;          
+            var headerHeight = this.props.headerHeight;
             var bodyHeight = height - headerHeight;
 
             var leftWidth = fixedColumnsExtents[fixedColumnsExtents.length-1];
@@ -290,17 +321,17 @@ Pagination is shown
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
             var rowSlice = this.getVisibleSlice(rowsExtents, scrollTop, scrollTop + height);
-            var grids = [];            
-           
+            var grids = [];
+
             var columns = this.state.visibleFixedColumns;
             // compute left header cells and left body cells
             if( columns.length > 0 )
             {
-                var colSlice = {begin:0, end: columns.length};                
+                var colSlice = {begin:0, end: columns.length};
                 var headerCells = this.renderHeader(colSlice, columns, fixedColumnsExtents);
-                var bodyCells = this.renderBody(colSlice, rowSlice, columns, fixedColumnsExtents, items, rowsExtents);   
+                var bodyCells = this.renderBody(colSlice, rowSlice, columns, fixedColumnsExtents, items, rowsExtents);
 
-                var header = 
+                var header =
                     React.DOM.div({
                         key: "left_header",
                         ref: "left_header",
@@ -309,13 +340,13 @@ Pagination is shown
                             left: 0,
                             top: 0,
                             width: leftWidth,
-                            height: headerHeight                            
+                            height: headerHeight
                         }
                         //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}}, headerCells)
-                );                    
+                );
 
-                var body = 
+                var body =
                     React.DOM.div({
                         key: "left_body",
                         ref: "left_body",
@@ -324,12 +355,12 @@ Pagination is shown
                             left: 0,
                             top: headerHeight,
                             width: leftWidth,
-                            height: bodyHeight,                            
+                            height: bodyHeight,
                             overflowY:"hidden"
                         }
                         //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}}, bodyCells)
-                );   
+                );
                 grids.push(header);
                 grids.push(body);
             }
@@ -340,9 +371,9 @@ Pagination is shown
             // compute right header cells and right body cells
             if( columns.length > 0 )
             {
-                var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightWidth);                
+                var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightWidth);
                 var headerCells = this.renderHeader(colSlice, columns, columnsExtents);
-                var bodyCells = this.renderBody(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents);                
+                var bodyCells = this.renderBody(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents);
 
                 var header =
                     React.DOM.div({
@@ -360,7 +391,7 @@ Pagination is shown
                     }, React.DOM.div( {style:{ position: "relative", width: rightWidth, height: headerHeight}}, headerCells)
                 );
 
-                var body = 
+                var body =
                     React.DOM.div({
                         key: "right_body",
                         ref: "right_body",
@@ -369,19 +400,19 @@ Pagination is shown
                             left: leftWidth,
                             top: headerHeight,
                             width: rightWidth,
-                            height: bodyHeight,                            
+                            height: bodyHeight,
                             overflowX: "scroll",
                             overflowY: "scroll"
                         }
                         ,onScroll:this.handleRightBodyScroll
                     }, React.DOM.div( {style:{ position:"relative", width:innerWidth, height:innerHeight}}, bodyCells)
-                );   
+                );
                 grids.push(header);
                 grids.push(body);
-            }           
+            }
 
             var table_elem = React.DOM.div({key:"table", style:{position:"relative"}}, grids);
-            return table_elem;           
+            return table_elem;
         }
 
     });

@@ -52,16 +52,16 @@
       //generate column configs
 
       var fixedColumns = [{
-        width:80,
+        width:30,
         dataKey:"id",
         label:"ID"
       }];
       var columns = [];
-      
+
       for(var col=0; col<columnCount;col++)
       {
           columns.push({
-            width:80,
+            width:30,
             dataKey:"column_"+col,
             label:"c"+col
           });
@@ -77,7 +77,7 @@
             fixedColumns:fixedColumns,
             columns:columns,
             headerHeight: 30,
-            rowHeight:40,
+            rowHeight:20,
             items:items
            }),
         document.getElementById('smart_table1')
