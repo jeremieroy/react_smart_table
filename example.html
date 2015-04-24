@@ -35,8 +35,8 @@
       }
 
       //generate a random dataset
-      var rowCount = 1000;
-      var columnCount = 200;
+      var rowCount = 100;
+      var columnCount = 25;
       var items = [];
       for(var row=0; row<rowCount;row++)
       {
@@ -61,9 +61,8 @@
       for(var col=0; col<columnCount;col++)
       {
           columns.push({
-            width:30,
-            dataKey:"column_"+col,
-            label:"c"+col
+            width:100,
+            dataKey:"column_"+col
           });
       }
 
@@ -76,8 +75,6 @@
             autoGenerateColumns:true,
             fixedColumns:fixedColumns,
             columns:columns,
-            headerHeight: 30,
-            rowHeight:20,
             items:items
            }),
         document.getElementById('smart_table1')

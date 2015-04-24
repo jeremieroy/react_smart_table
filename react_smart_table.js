@@ -124,6 +124,11 @@ table   [fixed size]
                 columns:[],
                 filterByColumn: false,
                 tableClass: "table",
+                sortIconGetter: function(column, isAscending) {
+                    //console.log(isAscending);
+                    var ascOrDesc = (isAscending) ? "glyphicon glyphicon-triangle-top" : "glyphicon glyphicon-triangle-bottom";
+                    return React.DOM.span({style:{position:"absolute", right:5, verticalAlign: "center"}, className:ascOrDesc});
+                },
                 sortNeutralClass: "sort-neutral",
                 sortAscendingClass: "sort-ascending",
                 sortDescendingClass: "sort-descending"
@@ -214,10 +219,6 @@ table   [fixed size]
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
         },
-        sortClass: function(column) {
-            var ascOrDesc = (this.state.sortOrderAscending) ? "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top";
-            return (this.state.sortColumn == column) ? ascOrDesc : "";
-        },
         handleRightBodyScroll: function(e) {
             this.setState({
                 scrollTop :e.target.scrollTop,
@@ -225,6 +226,8 @@ table   [fixed size]
             }, function(){
                 this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
                 this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
+                //force focus on body
+                this.refs.right_body.getDOMNode().focus();
             }.bind(this));
         },
         renderHeader: function(colSlice, columns, extents) {
@@ -238,11 +241,20 @@ table   [fixed size]
                         this.props.defaultColumn.headerRenderer(column, i);
 
                 var style = {
-                    top:0,
                     left: extents[i],
-                    width: extents[i+1]-extents[i]
+                    width: extents[i+1]-extents[i],
+                    height: this.props.headerHeight
                 };
-                cells.push( React.DOM.div( {style:style, key:i, className:"rst_th "+this.sortClass(column.dataKey), onClick:this.sortColumn(column.dataKey) }, cellElem) );
+
+                var icon = null;
+                if(this.state.sortColumn!=null && this.state.sortColumn == column.dataKey){
+                    icon = this.props.sortIconGetter(column, this.state.sortOrderAscending);
+                }
+
+                cellElem = React.DOM.div({className:"rst_th_wrapper"}, cellElem, icon);
+
+
+                cells.push( React.DOM.div( {style:style, key:i, className:"rst_th", onClick:this.sortColumn(column.dataKey) }, cellElem) );
             }
 
             var style = {
@@ -317,6 +329,16 @@ table   [fixed size]
             var innerWidth = columnsExtents[columnsExtents.length-1];
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
+            var rightHeaderWidth = rightWidth;
+            // account for scrollbar
+            if(innerWidth>rightWidth)
+                rightHeaderWidth-= this.SB.width;
+
+            var leftBodyHeight = bodyHeight;
+            // account for scrollbar
+            if(innerHeight>bodyHeight)
+                leftBodyHeight -= this.SB.height;
+
             // right body decal
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
@@ -343,7 +365,7 @@ table   [fixed size]
                             height: headerHeight
                         }
                         //,onScroll:this.handleScroll
-                    }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}}, headerCells)
+                    }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
                 );
 
                 var body =
@@ -355,11 +377,11 @@ table   [fixed size]
                             left: 0,
                             top: headerHeight,
                             width: leftWidth,
-                            height: bodyHeight,
+                            height: leftBodyHeight,
                             overflowY:"hidden"
                         }
                         //,onScroll:this.handleScroll
-                    }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}}, bodyCells)
+                    }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}, className:"rst_tbody"}, bodyCells)
                 );
                 grids.push(header);
                 grids.push(body);
@@ -371,7 +393,7 @@ table   [fixed size]
             // compute right header cells and right body cells
             if( columns.length > 0 )
             {
-                var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightWidth);
+                var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightHeaderWidth);
                 var headerCells = this.renderHeader(colSlice, columns, columnsExtents);
                 var bodyCells = this.renderBody(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents);
 
@@ -383,29 +405,31 @@ table   [fixed size]
                             position: "absolute",
                             left: leftWidth,
                             top: 0,
-                            width: rightWidth,
+                            width: rightHeaderWidth,
                             height: headerHeight,
                             overflowX: "hidden"
                         }
                         //,onScroll:this.handleScroll
-                    }, React.DOM.div( {style:{ position: "relative", width: rightWidth, height: headerHeight}}, headerCells)
+                    }, React.DOM.div( {style:{ position: "relative", width: rightHeaderWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
                 );
 
                 var body =
                     React.DOM.div({
                         key: "right_body",
                         ref: "right_body",
+                        tabIndex:0, // in order to force focus :s
                         style:{
                             position: "absolute",
                             left: leftWidth,
                             top: headerHeight,
                             width: rightWidth,
                             height: bodyHeight,
-                            overflowX: "scroll",
-                            overflowY: "scroll"
-                        }
+                            overflowX: "auto",
+                            overflowY: "auto"
+                        },
+                        className:"rst_tbody_container"
                         ,onScroll:this.handleRightBodyScroll
-                    }, React.DOM.div( {style:{ position:"relative", width:innerWidth, height:innerHeight}}, bodyCells)
+                    }, React.DOM.div( {style:{ position:"relative", width:innerWidth, height:innerHeight},className:"rst_tbody"}, bodyCells)
                 );
                 grids.push(header);
                 grids.push(body);
