@@ -100,6 +100,7 @@ table   [fixed size]
                 // generate columns from the data
                 autoColumnsGetter: function() {
                     if(this.items.length == 0) return [];
+
                     var columnsField = Object.keys(this.items[0]);
                     var columns = [];
                     for(var i=0;i<columnsField.length;i++) {
@@ -149,30 +150,29 @@ table   [fixed size]
         },
         componentWillMount: function() {
             this.SB = detectScrollbarWidthHeight();
-            this.initColumnState();
+            this.initColumnState(this.props);
 
         },
         componentWillReceiveProps: function(nextProps) {
-            this.initColumnState();
+            this.initColumnState(nextProps);
         },
-        initColumnState: function() {
+        initColumnState: function(props) {
             var fixedColumns = [];
             var columns = [];
             var keys = {};
-            for(var i=0, len = this.props.fixedColumns.length ; i<len; i++) {
-                var column = this.props.fixedColumns[i];
+            for(var i=0, len = props.fixedColumns.length ; i<len; i++) {
+                var column = props.fixedColumns[i];
                 keys[column.dataKey] = true;
                 fixedColumns.push(column);
             }
 
-            for(var i=0, len = this.props.columns.length ; i<len; i++) {
-                var column = this.props.columns[i];
+            for(var i=0, len = props.columns.length ; i<len; i++) {
+                var column = props.columns[i];
                 keys[column.dataKey] = true;
                 columns.push(column);
             }
 
-            var generatedColumns = (this.props.autoGenerateColumns) ? this.props.autoColumnsGetter() : [];
-            console.log("generated:"+generatedColumns);
+            var generatedColumns = (props.autoGenerateColumns) ? props.autoColumnsGetter() : [];
             for(var i=0, len = generatedColumns.length; i<len; i++) {
                 var column = generatedColumns[i];
                 if(!(column.dataKey in keys) ){
@@ -316,7 +316,6 @@ table   [fixed size]
               return true;
             }
             var items = this.props.items.filter(filterFunc);
-
             // sort the items
             var sortedColumn = this.state.sortColumn;
             var order = this.state.sortOrderAscending?1:-1;
@@ -378,7 +377,8 @@ table   [fixed size]
                             top: 0,
                             width: leftWidth,
                             height: headerHeight
-                        }
+                        },
+                        className:"rst_left"
                         //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
                 );
@@ -394,7 +394,8 @@ table   [fixed size]
                             width: leftWidth,
                             height: leftBodyHeight,
                             overflowY:"hidden"
-                        }
+                        },
+                        className:"rst_left"
                         //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}, className:"rst_tbody"}, bodyCells)
                 );

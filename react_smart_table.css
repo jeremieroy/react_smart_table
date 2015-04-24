@@ -12,6 +12,13 @@
 .rst_tbody {
  }
 
+.rst_left {
+    /*box-shadow: px 3px 5px 6px #ccc;
+    */
+    box-shadow: 8px 0 4px -2px #ddd;
+
+}
+
 .rst_tr {
     position: absolute; /* MANDATORY */
 }
@@ -43,3 +50,17 @@
     padding:4px;
     white-space:nowrap;
 }
+
+.fixedDataTableRow_columnsShadow {
+  background: 0 0 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAYAAAD5PA/NAAAAFklEQVQIHWPSkNeSBmJhTQVtbiDNCgASagIIuJX8OgAAAABJRU5ErkJggg==) repeat-y;
+  width: 4px;
+}
+.fixedDataTable_shadow {
+  background: 0 0 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAECAYAAABP2FU6AAAAF0lEQVR4AWPUkNeSBhHCjJoK2twgFisAFagCCp3pJlAAAAAASUVORK5CYII=) repeat-x;
+  height: 4px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+
