@@ -6,21 +6,21 @@
     <!-- css -->
     <link rel="stylesheet" href="react_smart_table.css" >
     <!-- js -->
-    <script src="https://fb.me/react-0.13.1.js"></script>    
+    <script src="https://fb.me/react-0.13.1.js"></script>
     <script src="react_smart_table.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <!-- Optional theme 
+    <!-- Optional theme
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
     -->
-    <!-- Latest compiled and minified JavaScript 
+    <!-- Latest compiled and minified JavaScript
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     -->
 
   </head>
   <body>
     <!-- page content -->
-    <div id="smart_table1">Lorem ipsum</div> 
+    <div id="smart_table1" >Lorem ipsum</div>
     <script>
 
       function randomString(length)
@@ -33,25 +33,54 @@
 
           return text;
       }
-      
-      var rowCount = 500;
-      var columnCount = 50;
-      var data=[];
+
+      //generate a random dataset
+      var rowCount = 100;
+      var columnCount = 25;
+      var items = [];
       for(var row=0; row<rowCount;row++)
       {
         var item = {};
         item["id"] = row;
         for(var col=0; col<columnCount;col++)
         {
-          item["column"+col.toString()] = randomString(3);          
+          item["column_"+col] = randomString(3);
         }
-        data.push(item);
+        items.push(item);
       }
-      var Table = React.createFactory(ReactSmartTable.Table);
+
+      //generate column configs
+
+      var fixedColumns = [{
+        width:30,
+        dataKey:"id",
+        label:"ID"
+      }];
+      var columns = [];
+
+      for(var col=0; col<columnCount;col++)
+      {
+          columns.push({
+            width:100,
+            dataKey:"column_"+col
+          });
+      }
+
       React.render(
-        Table({ data:data}),
-        document.getElementById('smart_table1')    
+        ReactSmartTable.Table({
+            width:1500,
+            height:500,
+            overflowX:"scroll",
+            overflowY:"scroll",
+            autoGenerateColumns:true,
+            fixedColumns:fixedColumns,
+            columns:columns,
+            items:items
+           }),
+        document.getElementById('smart_table1')
       );
+
+      window.React = React;
     </script>
   </body>
 </html>

@@ -1,0 +1,41 @@
+/*.smarttable
+"glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top"*/
+
+.rst_thead {
+    font-weight: bold;
+}
+
+.rst_tbody_container:focus {
+    outline: 0;
+ }
+
+.rst_tbody {
+ }
+
+.rst_tr {
+    position: absolute; /* MANDATORY */
+}
+
+.rst_td {
+    position: absolute; /* MANDATORY */
+    overflow-x: hidden; /* MANDATORY */
+    overflow-y: hidden; /* MANDATORY */
+    white-space:nowrap;
+    border-top: 1px solid #DDDDDD;
+    border-right: 1px solid #DDDDDD;
+    padding:4px;
+}
+
+.rst_th_wrapper {
+    position: relative; /* MANDATORY */
+}
+
+.rst_th {
+    position: absolute; /* MANDATORY */
+    overflow-x: hidden; /* MANDATORY */
+    overflow-y: hidden; /* MANDATORY */
+    border-bottom: 2px solid gray;
+    border-right: 1px solid gray;
+    padding:4px;
+    white-space:nowrap;
+}
