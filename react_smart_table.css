@@ -26,6 +26,10 @@
     padding:4px;
 }
 
+.rst_empty {
+    background: #EEEEEE;
+}
+
 .rst_th_wrapper {
     position: relative; /* MANDATORY */
 }

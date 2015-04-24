@@ -93,11 +93,13 @@ table   [fixed size]
                 width:200,  // fixed width
                 height:200, // fixed height
                 headerHeight:30,  // height of the header
-                rowHeight:30,    // height of a row
+                rowHeight:30,     // height of a row
                 items:[],
                 autoGenerateColumns:false,  // generate columns from the first item
+                defaultColumnWidth:80,
                 // generate columns from the data
                 autoColumnsGetter: function() {
+                    if(this.items.length == 0) return [];
                     var columnsField = Object.keys(this.items[0]);
                     var columns = [];
                     for(var i=0;i<columnsField.length;i++) {
@@ -170,6 +172,7 @@ table   [fixed size]
             }
 
             var generatedColumns = (this.props.autoGenerateColumns) ? this.props.autoColumnsGetter() : [];
+            console.log("generated:"+generatedColumns);
             for(var i=0, len = generatedColumns.length; i<len; i++) {
                 var column = generatedColumns[i];
                 if(!(column.dataKey in keys) ){
@@ -186,7 +189,7 @@ table   [fixed size]
         computeColumnExtents: function(columns) {
             var extents = [0], val = 0;
             for(var i=0, len = columns.length ; i<len; i++) {
-                val += ("width" in columns[i]) ? columns[i].width : this.props.defaultColumn.width;
+                val += ("width" in columns[i]) ? columns[i].width : this.props.defaultColumnWidth;
                 extents.push(val);
             }
             return extents;
@@ -224,8 +227,12 @@ table   [fixed size]
                 scrollTop :e.target.scrollTop,
                 scrollLeft:e.target.scrollLeft
             }, function(){
-                this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
-                this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
+                if("left_body" in this.refs){
+                    this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
+                }
+                if("right_header" in this.refs){
+                    this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
+                }
                 //force focus on body
                 this.refs.right_body.getDOMNode().focus();
             }.bind(this));
@@ -271,20 +278,28 @@ table   [fixed size]
                 for(var i = colSlice.begin; i < colSlice.end; i++) {
 
                     var column = columns[i];
-                    //var cellData = ('cellDataGetter' in column)?
-                    //        column.cellDataGetter(rowData, column):
-                    //        this.props.defaultColumn.cellDataGetter(rowData, column);
-                    var cellData = rowData[column.dataKey];
-
-                    var cellElem = ('cellRenderer' in column)?
-                            column.cellRenderer(cellData, rowData, j, column, i):
-                            this.props.defaultColumn.cellRenderer(cellData, rowData, j, column, i);
-
                     var style = {
                         left: columnsExtents[i],
-                        width:columnsExtents[i+1]-columnsExtents[i]
+                        width:columnsExtents[i+1]-columnsExtents[i],
+                        height: this.props.rowHeight
                     };
-                    cells.push( React.DOM.div( {style:style, key:i, className:"rst_td"}, cellElem) );
+                    var className = "rst_td";
+                    var cellElem = null;
+                    if(column.dataKey in rowData)
+                    {
+                        var cellData = rowData[column.dataKey];
+                        //var cellData = ('cellDataGetter' in column)?
+                        //        column.cellDataGetter(rowData, column):
+                        //        this.props.defaultColumn.cellDataGetter(rowData, column);
+                        cellElem = ('cellRenderer' in column)?
+                            column.cellRenderer(cellData, rowData, j, column, i):
+                            this.props.defaultColumn.cellRenderer(cellData, rowData, j, column, i);
+                    }else{
+                       className+=" "+"rst_empty";
+                    }
+
+
+                    cells.push( React.DOM.div( {style:style, key:i, className:className}, cellElem) );
                 }
                 var style = {
                     top: rowsExtents[j],
