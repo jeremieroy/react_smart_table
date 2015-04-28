@@ -103,8 +103,6 @@ table   [fixed size]
 
                 width: 'auto',  // width will expand horizontally to the parent border
                 height: 'auto', // height will expand vertically to the window border
-                minHeight: 90,
-                minWidth: 46,
                 headerHeight:30,  // height of the header
                 rowHeight:30,     // height of a row
                 items:[],
@@ -231,7 +229,7 @@ table   [fixed size]
             console.log("updateSize w: "+w+" h: "+h);
             */
 
-            w = Math.max(w, this.props.minWidth);
+            //w = Math.max(w, this.props.minWidth);
            // h = Math.max(h, this.props.minHeight);
 
             console.log("updateSize w: "+w+" h: "+h);

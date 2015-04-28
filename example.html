@@ -24,7 +24,7 @@
 
       div#fixed_table{
           width:200px;
-         /* height:150px; */
+          height:150px;
 
           margin:10px;
           padding:5px;
@@ -104,7 +104,7 @@
       React.render(
         ReactSmartTable.Table({
             //width:100
-            //height:"100%",
+            height:"100%",
             autoGenerateColumns:true,
             fixedColumns:fixedColumns,
             columns:columns,
@@ -113,10 +113,10 @@
         document.getElementById('fixed_table')
       );
 
-/*
+
       React.render(
         ReactSmartTable.Table({
-            //height:100,
+            height:'100%',
             autoGenerateColumns:true,
             fixedColumns:fixedColumns,
             columns:columns,
@@ -136,7 +136,7 @@
            }),
         document.getElementById('fill_table')
       );
-*/
+
 
       window.React = React;
     </script>
