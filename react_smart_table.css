@@ -1,6 +1,11 @@
 /*.smarttable
 "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top"*/
 
+.rst_table {
+    border:5px solid #FF0000;
+}
+
+
 .rst_thead {
     font-weight: bold;
 }

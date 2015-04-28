@@ -16,11 +16,46 @@
     <!-- Latest compiled and minified JavaScript
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     -->
+    <style>
+     /* html, body{
+        margin:10px;
+        height: 100%;
+      }*/
+
+      div#fixed_table{
+          width:200px;
+         /* height:150px; */
+
+          margin:10px;
+          padding:5px;
+          border:5px solid black;
+      }
+
+      div#auto_table{
+        height:200px;
+        margin:10px;
+        padding:5px;
+        border:5px solid black;
+      }
+
+      div#fill_table{
+
+      }
+
+    </style>
 
   </head>
   <body>
     <!-- page content -->
-    <div id="smart_table1" >Lorem ipsum</div>
+      <div>width=200  height=150</div>
+      <div id="fixed_table"></div>
+
+      <div>(width="auto") height=100 </div>
+      <div id="auto_table"></div>
+
+      <div>height="fill" (width="auto")</div>
+      <div id="fill_table"></div>
+    </div>
     <script>
 
       function randomString(length)
@@ -35,8 +70,8 @@
       }
 
       //generate a random dataset
-      var rowCount = 100;
-      var columnCount = 25;
+      var rowCount = 200;
+      var columnCount = 20;
       var items = [];
       for(var row=0; row<rowCount;row++)
       {
@@ -52,7 +87,7 @@
       //generate column configs
 
       var fixedColumns = [{
-        width:30,
+        width:50,
         dataKey:"id",
         label:"ID"
       }];
@@ -61,22 +96,47 @@
       for(var col=0; col<columnCount;col++)
       {
           columns.push({
-            width:100,
+            width:80,
             dataKey:"column_"+col
           });
       }
 
       React.render(
         ReactSmartTable.Table({
-            width:1500,
-            height:500,
+            //width:100
+            //height:"100%",
             autoGenerateColumns:true,
-            fixedColumns:[],//fixedColumns,
+            fixedColumns:fixedColumns,
             columns:columns,
             items:items
            }),
-        document.getElementById('smart_table1')
+        document.getElementById('fixed_table')
       );
+
+/*
+      React.render(
+        ReactSmartTable.Table({
+            //height:100,
+            autoGenerateColumns:true,
+            fixedColumns:fixedColumns,
+            columns:columns,
+            items:items
+           }),
+        document.getElementById('auto_table')
+      );
+
+      React.render(
+        ReactSmartTable.Table({
+            height:"fill",
+            offsetBottom:20,
+            autoGenerateColumns:true,
+            fixedColumns:fixedColumns,
+            columns:columns,
+            items:items
+           }),
+        document.getElementById('fill_table')
+      );
+*/
 
       window.React = React;
     </script>

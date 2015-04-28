@@ -57,6 +57,14 @@ table   [fixed size]
         return Math.max(min, Math.min(max, val))
     }
 
+    function geAbsolutePos(el) {
+        // yay readability
+        for (var lx=0, ly=0;
+             el != null;
+             lx += el.offsetLeft, ly += el.offsetTop, el = el.offsetParent);
+        return {x: lx,y: ly};
+    }
+
 /*
     var Header = React.createClass({displayName: "Header",
         getDefaultProps: function() {
@@ -90,11 +98,17 @@ table   [fixed size]
     var T = React.createClass({displayName: "Table",
         getDefaultProps: function() {
             return {
-                width:200,  // fixed width
-                height:200, // fixed height
+                               // when active, the table expand vertically up to the page bottom
+                                 // otherwise, the table expand to the enclosing diff
+
+                width: 'auto',  // width will expand horizontally to the parent border
+                height: 'auto', // height will expand vertically to the window border
+                minHeight: 90,
+                minWidth: 46,
                 headerHeight:30,  // height of the header
                 rowHeight:30,     // height of a row
                 items:[],
+                offsetBottom:5,  // pixel offset to the page bottom when fill is active
                 autoGenerateColumns:false,  // generate columns from the first item
                 defaultColumnWidth:80,
                 // generate columns from the data
@@ -151,10 +165,83 @@ table   [fixed size]
         componentWillMount: function() {
             this.SB = detectScrollbarWidthHeight();
             this.initColumnState(this.props);
-
         },
         componentWillReceiveProps: function(nextProps) {
             this.initColumnState(nextProps);
+        },
+        componentDidMount: function() {
+            console.log("componentDidMount");
+            this.updateSize();
+            // TODO: handle sizing logic change
+            // TODO should this be moved out, it is quite a common need...
+            var win = window;
+            if (win.addEventListener) {
+                win.addEventListener('resize', this.onWindowResize, false);
+            } else if (win.attachEvent) {
+                win.attachEvent('onresize', this.onWindowResize);
+            } else {
+                win.onresize = this.onWindowResize;
+            }
+        },
+        onWindowResize:function() {
+            clearTimeout(this._updateTimer);
+            this._updateTimer = setTimeout(this.updateSize, 16);
+        },
+        updateSize:function() {
+            var container = React.findDOMNode(this);
+            var verticalPadding = 0;
+            var horizontalPadding = 0;
+            // rect is a DOMRect object with four properties: left, top, right, bottom
+            var rect = container.getBoundingClientRect();
+            console.log(rect);
+
+            var w = this.props.width;
+            var h = this.props.height;
+
+            w = container.clientWidth;
+            h = container.clientHeight;
+
+/*
+            console.log("padding H: "+horizontalPadding+" V: "+verticalPadding);
+            // auto size = get size from parent
+            if(w == "auto") {
+                console.log("W:" + container.offsetWidth+" vs "+container.clientWidth+" vs "+rect.width);
+                w = container.clientWidth;
+                console.log("set width from parent: "+w);
+            }
+
+            if(h == "auto") {
+                console.log("H:" + container.offsetHeight+" vs "+container.clientHeight+" vs "+rect.height);
+                h = container.clientHeight;
+                console.log("set height from parent: "+h);
+            }
+
+            if(h == "fill") {
+                //compute available space from the window and the table upper position
+                var win = window;
+                var pos = geAbsolutePos(container);
+                console.log(pos.y+" vs "+rect.top);
+                h = win.innerHeight - rect.top - this.props.offsetBottom;
+                verticalPadding = container.offsetHeight - container.clientHeight;
+            }*/
+
+/*
+            var fullHeight = this.props.items.length * this.props.rowHeight
+                             + this.props.headerHeight;
+            console.log("updateSize w: "+w+" h: "+h);
+            */
+
+            w = Math.max(w, this.props.minWidth);
+           // h = Math.max(h, this.props.minHeight);
+
+            console.log("updateSize w: "+w+" h: "+h);
+
+            this.setState({
+                width: w,
+                height: h,
+                verticalPadding:verticalPadding,
+                horizontalPadding:horizontalPadding
+            });
         },
         initColumnState: function(props) {
             var fixedColumns = [];
@@ -309,7 +396,17 @@ table   [fixed size]
             }
             return rows;
         },
+
         render: function() {
+            console.log("render");
+
+            if( !("horizontalPadding" in this.state ))
+                return React.DOM.div({
+                    className:"rst_table",
+                    style : {
+                        width: this.props.width, height: this.props.height
+                    }
+            });
 
             // filter the items
             var filterFunc = function (value) {
@@ -330,20 +427,31 @@ table   [fixed size]
             var fixedColumnsExtents = this.computeColumnExtents(this.state.visibleFixedColumns);
             var columnsExtents = this.computeColumnExtents(this.state.visibleColumns);
 
-            // viewport size
-            var width = this.props.width;
-            var height = this.props.height;
-
+            // outer size == viewport size
+            var width = this.state.width - this.state.horizontalPadding;
+            var height = this.state.height - this.state.verticalPadding;
             var headerHeight = this.props.headerHeight;
-            var bodyHeight = height - headerHeight;
 
             var leftWidth = fixedColumnsExtents[fixedColumnsExtents.length-1];
+            var innerWidth = columnsExtents[columnsExtents.length-1];
+
+            if(width > innerWidth + leftWidth +this.SB.width)
+                width = innerWidth+leftWidth + this.SB.width;
+
+
             var rightWidth = width - leftWidth;
 
-            var innerWidth = columnsExtents[columnsExtents.length-1];
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
+            if(this.props.height == "auto")
+                height = innerHeight+headerHeight + this.SB.height;
+
             var rightHeaderWidth = rightWidth;
+
+            var bodyHeight = height - headerHeight;
+
+
+
             // account for scrollbar
             if(innerWidth>rightWidth)
                 rightHeaderWidth-= this.SB.width;
@@ -451,7 +559,24 @@ table   [fixed size]
                 grids.push(body);
             }
 
-            var table_elem = React.DOM.div({key:"table", style:{position:"relative"}}, grids);
+            var containizer = React.DOM.div({
+                style:{ position:'relative',
+                        width:width,
+                        height:height
+                    }
+                }, grids);
+
+             var table_elem = React.DOM.div({
+                key:"table",
+                className:"rst_table",
+                style:{ position:'relative',
+                        //width:this.props.width == "auto")?"100%":this.state.width,
+                        //height:(this.props.height == "auto")?"100%":"auto"//this.state.height
+                        width:this.props.width,
+                        height:this.props.height
+                    }
+                }, containizer);
+
             return table_elem;
         }
 
