@@ -2,7 +2,7 @@
 "glyphicon glyphicon-triangle-bottom" : "glyphicon glyphicon-triangle-top"*/
 
 .rst_table {
-    border:5px solid #FF0000;
+    /*border:5px solid #FF0000;*/
 }
 
 
@@ -20,7 +20,9 @@
 .rst_left {
     /*box-shadow: px 3px 5px 6px #ccc;
     */
-    box-shadow: 8px 0 4px -2px #ddd;
+    /*box-shadow: 8px 0 4px -2px #ddd;*/
+    border-right: 1px solid gray;
+    overflow:hidden;
 
 }
 
@@ -50,8 +52,8 @@
     position: absolute; /* MANDATORY */
     overflow-x: hidden; /* MANDATORY */
     overflow-y: hidden; /* MANDATORY */
-    border-bottom: 2px solid gray;
-    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+    border-right: 1px solid #DDDDDD;
     padding:4px;
     white-space:nowrap;
 }
