@@ -123,8 +123,7 @@ table   [fixed size]
                 items:[],
                 stickToBottom:false,
                 offsetBottom:5,  // pixel offset to the page bottom when fill is active
-                autoGenerateColumns:false,  // generate columns from the first item
-                defaultColumnWidth:80,
+                autoGenerateColumns:false,  // generate columns from the first item                
                 // generate columns from the data
                 autoColumnsGetter: function() {
                     if(this.items.length == 0) return [];
@@ -136,29 +135,20 @@ table   [fixed size]
                     }
                     return columns;
                 },
+                defaultColumnWidth:80,
                 defaultCellClassGetter:function(cellData, rowData, rowIndex, column, columnIndex) {
                     if(cellData == undefined)
                         return "rst_empty";
                 },
-                defaultColumn:{
-                    dataKey:"id",
-                    label:"Id",
-                    width:60,
-                    isVisible:true,
-                    cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+                defaultCellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
                         return cellData;
-                    },
-                    headerRenderer:function(column, columnIndex) {
-                        if('label' in column)
-                            return column.label;
-                        else
-                            return column.dataKey;
-                    },
-                    cellClassGetter:function(cellData, rowData, rowIndex, column, columnIndex) {
-                        if(cellData == undefined)
-                            return "rst_empty";
-                    }
                 },
+                defaultHeaderRenderer:function(column, columnIndex) {
+                    if('label' in column)
+                        return column.label;
+                    else
+                        return column.dataKey;
+                },              
                 fixedColumns:[],
                 columns:[],
                 filterByColumn: false,
@@ -352,7 +342,7 @@ table   [fixed size]
                     if (j == 0) {
                         var cellElem = ('headerRenderer' in column)?
                             column.headerRenderer(column, i):
-                            this.props.defaultColumn.headerRenderer(column, i);
+                            this.props.defaultHeaderRenderer(column, i);
 
                         var style = {
                             left: extents[i],
@@ -400,22 +390,15 @@ table   [fixed size]
                     if(column.dataKey in rowData)
                     {
                         cellData = rowData[column.dataKey];
-                        //var cellData = ('cellDataGetter' in column)?
-                        //        column.cellDataGetter(rowData, column):
-                        //        this.props.defaultColumn.cellDataGetter(rowData, column);
                         cellElem = ('cellRenderer' in column)?
                             column.cellRenderer(cellData, rowData, j, column, i):
-                            this.props.defaultColumn.cellRenderer(cellData, rowData, j, column, i);
+                            this.props.defaultCellRenderer(cellData, rowData, j, column, i);
                     }
                     var customClass = ('cellClassGetter' in column) ?
                             column.cellClassGetter(cellData, rowData, j, column, i):
                             this.props.defaultCellClassGetter(cellData, rowData, j, column, i);
 
                     className += " "+customClass;
-
-
-                    //if(cellData == undefined)
-                       //className+=" "+"rst_empty";
 
                     cells.push( React.DOM.div( {style:style, key:i, className:className}, cellElem) );
                 }
