@@ -92,7 +92,17 @@ table   [fixed size]
 
         }
     });
+     var ColumnHeader = React.createClass({displayName: "Header",
+        getDefaultProps: function() {
+            column:null,
+        },
+        render: function() {
+
+        }
+    });
 */
+
+   
     var exampleColumn = {
         dataKey:"id",
         label:"Id",
@@ -109,8 +119,6 @@ table   [fixed size]
         }
     };
 
-
-
     var T = React.createClass({displayName: "Table",
         getDefaultProps: function() {
             return {
@@ -118,7 +126,7 @@ table   [fixed size]
                 height: 'auto',   // css rules -> height will expand vertically to the content
                                   // if set to 'fill' the height will adjust to stick to the bottom of the window
                                   // minus offsetBottom
-                headerHeight:30,  // height of the header
+                headerHeight:60,// height of the header
                 rowHeight:30,     // height of a row
                 items:[],
                 stickToBottom:false,
@@ -333,43 +341,37 @@ table   [fixed size]
             this._scrollTimer = setTimeout(function(){ this.handleRightBodyScrollReal(st, sl) }.bind(this), 16);
         },
         renderHeader: function(colSlice, columns, extents) {
-            var rows = [];
-            var j = 0;
-            for(var j = 0; j<1; j++) {
-                var cells = [];
-                for(var i = colSlice.begin; i<colSlice.end; i++) {
-                    var column = columns[i];
-                    if (j == 0) {
-                        var cellElem = ('headerRenderer' in column)?
-                            column.headerRenderer(column, i):
-                            this.props.defaultHeaderRenderer(column, i);
-
-                        var style = {
-                            left: extents[i],
-                            width: extents[i+1]-extents[i],
-                            height: this.props.headerHeight
-                        };
-
-                        var icon = null;
-                        if(this.state.sortColumn!=null && this.state.sortColumn == column.dataKey){
-                            icon = this.props.sortIconGetter(column, this.state.sortOrderAscending);
-                        }
-
-                        cellElem = React.DOM.div({className:"rst_th_wrapper"}, cellElem, icon);
-                        cells.push( React.DOM.div( {style:style, key:i, className:"rst_th", onClick:this.sortColumn(column.dataKey) }, cellElem) );
-                    }else{
-
-                        // TODO handle filter inputs
-                    }
-
-                }
+            var titles = [];
+            var filters = [];                
+            for(var i = colSlice.begin; i<colSlice.end; i++) {
+                var column = columns[i];
+                // Generate title
+                var cellElem = ('headerRenderer' in column)?
+                    column.headerRenderer(column, i):
+                    this.props.defaultHeaderRenderer(column, i);
 
                 var style = {
-                    top: 0, height: this.props.headerHeight
+                    left: extents[i],
+                    width: extents[i+1]-extents[i],
+                    height: this.props.headerHeight
                 };
-                rows.push( React.DOM.div( {style:style, key:j, className:"rst_tr"}, cells) );
+                
+                // ... with sort icon
+                var icon = null;
+                if(this.state.sortColumn!=null && this.state.sortColumn == column.dataKey){
+                    icon = this.props.sortIconGetter(column, this.state.sortOrderAscending);
+                }
+
+                cellElem = React.DOM.div({className:"rst_th_wrapper", onClick:this.sortColumn(column.dataKey)}, cellElem, icon);
+                // Make search filter
+                var filter = React.DOM.input({type:"text", style:{ display: 'block', width: '100%', marginTop:2}});
+                titles.push( React.DOM.div( {style:style, key:i, className:"rst_th" }, cellElem, filter) );    
             }
-            return rows;
+
+            var style = {
+                top: 0, height: this.props.headerHeight
+            };
+            return React.DOM.div( {style:style, className:"rst_tr"}, titles);           
         },
         renderBody: function(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents) {
             var rows = [];
@@ -616,8 +618,6 @@ table   [fixed size]
                 key:"table",
                 className:"rst_table",
                 style:{ position:'relative',
-                        //width:this.props.width == "auto")?"100%":this.state.width,
-                        //height:(this.props.height == "auto")?"100%":"auto"//this.state.height
                         width:this.props.width,
                         height:(this.props.height == 'fill')?"auto":this.props.height
                     }

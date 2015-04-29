@@ -7,7 +7,7 @@
 
 
 .rst_thead {
-    font-weight: bold;
+    
 }
 
 .rst_tbody_container:focus {
@@ -46,6 +46,7 @@
 
 .rst_th_wrapper {
     position: relative; /* MANDATORY */
+    font-weight: bold;
 }
 
 .rst_th {
