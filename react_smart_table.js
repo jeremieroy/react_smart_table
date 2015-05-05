@@ -580,7 +580,11 @@ table   [fixed size]
                             fontSize: "10px",
                             padding: "1px",
                         }
-                    }, "Download ", React.DOM.a({onClick: this.downloadJSON}, "JSON")
+                    },
+                    "Download ",
+                    React.DOM.a({onClick: this.downloadJSON, download: "code.json"}, "JSON"),
+                    " - ",
+                    React.DOM.a({onClick: this.downloadCSV, download: "code.csv"}, "CSV")
                 );
 
             grids.push(footer);
@@ -604,8 +608,26 @@ table   [fixed size]
             return table_elem;
         },
 
-        downloadJSON: function() {
-            alert("plop");
+        downloadJSON: function(plop) {
+            var data = this.getFilteredItems();
+            var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
+            saveAs(blob, "table_data.json");
+        },
+
+        downloadCSV: function(plop) {
+            var items = this.getFilteredItems();
+            var data = Object.keys(items[0]).join(";") + "\n"; // CSV Header
+
+            for (var row_id in items) {
+                var row = items[row_id];
+                var values = [];
+                for(var key in row) {
+                    values.push(row[key]);
+                }
+                data = data.concat(values.join(";")) + "\n"; // CSV row
+            }
+            var blob = new Blob([data], {type: "application/json;charset=utf-8"});
+            saveAs(blob, "table_data.csv");
         }
 
     });
