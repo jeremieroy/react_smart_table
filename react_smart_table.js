@@ -94,6 +94,7 @@ table   [fixed size]
                 headerHeight:60,  // height of the header
                 rowHeight:30,     // height of a row
                 footerHeight:15,
+                footerPresent:true,
                 items:[],
                 fixedColumns:[],
                 columns:[],
@@ -441,7 +442,10 @@ table   [fixed size]
             var innerRightWidth = columnsExtents[columnsExtents.length-1];
 
             var headerHeight = this.props.headerHeight;
-            var footerHeight = this.props.footerHeight;
+            if (this.props.footerPresent)
+                var footerHeight = this.props.footerHeight;
+            else
+                var footerHeight = 0;
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
             // handle case where height is set by its content
@@ -564,7 +568,8 @@ table   [fixed size]
                 grids.push(body);
             }
 
-             var footer =
+            if (footerHeight > 0) {
+                var footer =
                     React.DOM.div({
                         key: "footer",
                         ref: "footer",
@@ -586,8 +591,8 @@ table   [fixed size]
                     " - ",
                     React.DOM.a({onClick: this.downloadCSV, download: "code.csv"}, "CSV")
                 );
-
-            grids.push(footer);
+                grids.push(footer);
+            }
 
             var containizer = React.DOM.div({
                 style:{ position:'relative',
