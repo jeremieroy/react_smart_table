@@ -93,6 +93,7 @@ table   [fixed size]
                                   // minus offsetBottom
                 headerHeight:60,  // height of the header
                 rowHeight:30,     // height of a row
+                footerHeight:15,
                 items:[],
                 fixedColumns:[],
                 columns:[],
@@ -440,6 +441,7 @@ table   [fixed size]
             var innerRightWidth = columnsExtents[columnsExtents.length-1];
 
             var headerHeight = this.props.headerHeight;
+            var footerHeight = this.props.footerHeight;
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
             // handle case where height is set by its content
@@ -454,7 +456,7 @@ table   [fixed size]
             var outerRightWidth = width - leftWidth;
 
             var rightHeaderWidth = outerRightWidth;
-            var bodyHeight = height - headerHeight;
+            var bodyHeight = height - headerHeight - footerHeight;
             var leftBodyHeight = bodyHeight;
 
             // account for scrollbar
@@ -562,6 +564,27 @@ table   [fixed size]
                 grids.push(body);
             }
 
+             var footer =
+                    React.DOM.div({
+                        key: "footer",
+                        ref: "footer",
+                        style:{
+                            position: "absolute",
+                            left: 0,
+                            top: headerHeight + bodyHeight,
+                            width: width,
+                            height: footerHeight,
+                            overflowX: "hidden",
+                            backgroundColor:"#EEE",
+                            borderTop: "1px solid #CCC",
+                            fontSize: "10px",
+                            padding: "1px",
+                        }
+                    }, "Download ", React.DOM.a({onClick: this.downloadJSON}, "JSON")
+                );
+
+            grids.push(footer);
+
             var containizer = React.DOM.div({
                 style:{ position:'relative',
                         width:width,
@@ -579,6 +602,10 @@ table   [fixed size]
                 }, containizer);
 
             return table_elem;
+        },
+
+        downloadJSON: function() {
+            alert("plop");
         }
 
     });
