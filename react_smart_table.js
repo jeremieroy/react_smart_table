@@ -63,46 +63,11 @@ table   [fixed size]
       "<=": function(x, y) { return x <= y; },
       ">": function(x, y) { return x > y; },
       ">=": function(x, y) { return x >= y; },
-      "==": function(x, y) { return x == y; }
+      "==": function(x, y) { return x == y; },
+      "!=": function(x, y) { return x != y; }
     };
-/*
-    var Header = React.createClass({displayName: "Header",
-        getDefaultProps: function() {
-            column:null,
-        },
-        render: function() {
 
-        }
-    });
 
-    var Row = React.createClass({displayName: "Header",
-        getDefaultProps: function() {
-            column:null,
-        },
-        render: function() {
-
-        }
-    });
-
-    var Cell = React.createClass({displayName: "Header",
-        getDefaultProps: function() {
-            column:null,
-        },
-        render: function() {
-
-        }
-    });
-     var ColumnHeader = React.createClass({displayName: "Header",
-        getDefaultProps: function() {
-            column:null,
-        },
-        render: function() {
-
-        }
-    });
-*/
-
-   
     var exampleColumn = {
         dataKey:"id",
         label:"Id",
@@ -126,12 +91,15 @@ table   [fixed size]
                 height: 'auto',   // css rules -> height will expand vertically to the content
                                   // if set to 'fill' the height will adjust to stick to the bottom of the window
                                   // minus offsetBottom
-                headerHeight:60,// height of the header
+                headerHeight:60,  // height of the header
                 rowHeight:30,     // height of a row
                 items:[],
+                fixedColumns:[],
+                columns:[],
                 stickToBottom:false,
                 offsetBottom:5,  // pixel offset to the page bottom when fill is active
-                autoGenerateColumns:false,  // generate columns from the first item                
+                autoGenerateColumns:false,  // generate columns from the first item
+                defaultColumnWidth:80,
                 // generate columns from the data
                 autoColumnsGetter: function() {
                     if(this.items.length == 0) return [];
@@ -143,7 +111,6 @@ table   [fixed size]
                     }
                     return columns;
                 },
-                defaultColumnWidth:80,
                 defaultCellClassGetter:function(cellData, rowData, rowIndex, column, columnIndex) {
                     if(cellData == undefined)
                         return "rst_empty";
@@ -156,29 +123,22 @@ table   [fixed size]
                         return column.label;
                     else
                         return column.dataKey;
-                },              
-                fixedColumns:[],
-                columns:[],
-                filterByColumn: false,
-                tableClass: "table",
+                },
                 sortIconGetter: function(column, isAscending) {
                     var ascOrDesc = (isAscending) ? "glyphicon glyphicon-triangle-top" : "glyphicon glyphicon-triangle-bottom";
                     return React.DOM.span({style:{position:"absolute", right:5, verticalAlign: "center"}, className:ascOrDesc});
-                },
-                sortNeutralClass: "sort-neutral",
-                sortAscendingClass: "sort-ascending",
-                sortDescendingClass: "sort-descending"
+                }
             };
         },
         getInitialState: function() {
-            this.SB = detectScrollbarWidthHeight();
             return {
                 scrollTop:0,
                 scrollLeft:0,
                 sortOrderAscending: false,
                 sortColumn: null,
                 visibleColumns:[],
-                visibleFixedColumns:[]
+                visibleFixedColumns:[],
+                filterTexts:{}
             };
         },
         componentWillMount: function() {
@@ -190,15 +150,13 @@ table   [fixed size]
         },
         componentDidMount: function() {
             this.updateSize();
-            // TODO: handle sizing logic change
-            // TODO should this be moved out, it is quite a common need...
-            var win = window;
-            if (win.addEventListener) {
-                win.addEventListener('resize', this.onWindowResize, false);
-            } else if (win.attachEvent) {
-                win.attachEvent('onresize', this.onWindowResize);
+            // Q: should this be moved out ? it is quite a common need ...
+            if (window.addEventListener) {
+                window.addEventListener('resize', this.onWindowResize, false);
+            } else if (window.attachEvent) {
+                window.attachEvent('onresize', this.onWindowResize);
             } else {
-                win.onresize = this.onWindowResize;
+                window.onresize = this.onWindowResize;
             }
         },
         onWindowResize:function() {
@@ -208,8 +166,7 @@ table   [fixed size]
         updateSize:function() {
             var container = ("findDOMNode" in React) ? React.findDOMNode(this):
                             this.getDOMNode();
-            // rect is a DOMRect object with four properties: left, top, right, bottom
-            var rect = container.getBoundingClientRect();
+
             // console.log(rect);
             // console.log("W:" + container.offsetWidth+" vs "+container.clientWidth+" vs "+rect.width);
             // console.log("H:" + container.offsetHeight+" vs "+container.clientHeight+" vs "+rect.height);
@@ -217,22 +174,16 @@ table   [fixed size]
             var w = this.props.width;
             var h = this.props.height;
 
-            //if(this.props.stickToBottom)
-
             w = container.clientWidth;
             if(h == "fill") {
+                // rect is a DOMRect object with four properties: left, top, right, bottom
+                var rect = container.getBoundingClientRect();
                 //compute available space from the window and the table upper position
-                var win = window;
-                h = win.innerHeight - rect.top - this.props.offsetBottom;
-                /*verticalPadding = container.offsetHeight - container.clientHeight;*/
+                h = window.innerHeight - rect.top - this.props.offsetBottom;
             }else{
-
                 h = container.clientHeight;
             }
-
             //console.log("updateSize w: "+w+" h: "+h);
-
-
             this.setState({
                 width: w,
                 height: h
@@ -251,8 +202,10 @@ table   [fixed size]
 
             for(var i=0, len = props.columns.length ; i<len; i++) {
                 var column = props.columns[i];
-                keys[column.dataKey] = true;
-                columns.push(column);
+                if(!(column.dataKey in keys) ){
+                    keys[column.dataKey] = true;
+                    columns.push(column);
+                }
             }
 
             var generatedColumns = (props.autoGenerateColumns) ? props.autoColumnsGetter() : [];
@@ -288,8 +241,9 @@ table   [fixed size]
         getVisibleSlice: function (extents, minVal, maxVal)
         {
             var i=1, len = extents.length-1;
-            if(len<2)
+            if(len<1){
                 return {begin:0, end:0};
+            }
 
             while( i<len && extents[i] < minVal) { i++;}
             var begin = i-1;
@@ -298,51 +252,40 @@ table   [fixed size]
             var end = i;
             return {begin:begin, end:end};
         },
-        sortColumn: function(column) {
+        onSortColumn: function(column) {
             return function(event) {
                 var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
                 this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
             }.bind(this);
         },
-        handleRightBodyScroll: function(e) {
-            this.setState({
-                scrollTop :e.target.scrollTop,
-                scrollLeft:e.target.scrollLeft
-            }, function(){
-                if("left_body" in this.refs){
-                    this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
-                }
-                if("right_header" in this.refs){
-                    this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
-                }
-                //force focus on body
-                this.refs.right_body.getDOMNode().focus();
-            }.bind(this));
+        onFilterTextChange: function(column) {
+            return function(newValue) {
+                this.state.filterTexts[column.dataKey] = newValue;
+              // Mutation without setState so we need to call forceUpdate().
+              this.forceUpdate();
+            }.bind(this);
         },
-        handleRightBodyScrollReal: function(st,sl) {
-            this.setState({
-                scrollTop :st,
-                scrollLeft:sl
-            });
-        },
-        handleRightBodyScrollTrottle:function(e) {
-
-            var st = e.target.scrollTop;
-            var sl = e.target.scrollLeft;
-            if("left_body" in this.refs){
-                this.refs.left_body.getDOMNode().scrollTop = st;
+        onRightBodyScroll: function(e) {
+            if( (e.target.scrollLeft != this.state.scrollLeft) ||
+                (e.target.scrollTop != this.state.scrollTop)) {
+                this.setState({
+                    scrollTop :e.target.scrollTop,
+                    scrollLeft:e.target.scrollLeft
+                }, function(){
+                    if("left_body" in this.refs){
+                        this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
+                    }
+                    if("right_header" in this.refs){
+                        this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
+                    }
+                    //force focus on body
+                    this.refs.right_body.getDOMNode().focus();
+                }.bind(this));
             }
-            if("right_header" in this.refs){
-                this.refs.right_header.getDOMNode().scrollLeft = sl;
-            }
-            //force focus on body
-            this.refs.right_body.getDOMNode().focus();
-            clearTimeout(this._scrollTimer);
-            this._scrollTimer = setTimeout(function(){ this.handleRightBodyScrollReal(st, sl) }.bind(this), 16);
         },
         renderHeader: function(colSlice, columns, extents) {
             var titles = [];
-            var filters = [];                
+            var filters = [];
             for(var i = colSlice.begin; i<colSlice.end; i++) {
                 var column = columns[i];
                 // Generate title
@@ -355,23 +298,27 @@ table   [fixed size]
                     width: extents[i+1]-extents[i],
                     height: this.props.headerHeight
                 };
-                
+
                 // ... with sort icon
                 var icon = null;
                 if(this.state.sortColumn!=null && this.state.sortColumn == column.dataKey){
                     icon = this.props.sortIconGetter(column, this.state.sortOrderAscending);
                 }
 
-                cellElem = React.DOM.div({className:"rst_th_wrapper", onClick:this.sortColumn(column.dataKey)}, cellElem, icon);
+                cellElem = React.DOM.div({className:"rst_th_wrapper", onClick:this.onSortColumn(column.dataKey)}, cellElem, icon);
                 // Make search filter
-                var filter = React.DOM.input({type:"text", style:{ display: 'block', width: '100%', marginTop:2}});
-                titles.push( React.DOM.div( {style:style, key:i, className:"rst_th" }, cellElem, filter) );    
+                var valueLink = {
+                    value: (column.dataKey in this.state.filterTexts) ? this.state.filterTexts[column.dataKey]: "",
+                    requestChange: this.onFilterTextChange(column)
+                  };
+                var filter = React.DOM.input({type:"text", valueLink:valueLink, style:{ display: 'block', width: '100%', marginTop:2}});
+                titles.push( React.DOM.div( {style:style, key:i, className:"rst_th" }, cellElem, filter) );
             }
 
             var style = {
                 top: 0, height: this.props.headerHeight
             };
-            return React.DOM.div( {style:style, className:"rst_tr"}, titles);           
+            return React.DOM.div( {style:style, className:"rst_tr"}, titles);
         },
         renderBody: function(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents) {
             var rows = [];
@@ -412,10 +359,52 @@ table   [fixed size]
             }
             return rows;
         },
+        getFilteredItems: function() {
+            var filters = [];
+            var allColumns = this.state.visibleFixedColumns.concat(this.state.visibleColumns);
 
+            var operandRegex = /^((?:(?:[<>!]=?)|==))\s?([-]?\d+(?:\.\d+)?)$/;
+
+            allColumns.forEach(function(column) {
+
+                if(column.dataKey in this.state.filterTexts){
+                     var filterText = this.state.filterTexts[column.dataKey];
+
+                  if (filterText.length > 0) {
+                    var operandMatch = operandRegex.exec(filterText);
+                    if (operandMatch && operandMatch.length == 3) {
+                      filters[column.dataKey] = function(match) { return function(x) { return operators[match[1]](x, match[2]); }; }(operandMatch);
+                    } else {
+                        if(filterText.indexOf("!=") == 0) {
+                            filterText = filterText.substring(2);
+                            filters[column.dataKey] = function(x) {
+                                return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) == -1);
+                              };
+                        }else{
+                            filters[column.dataKey] = function(x) {
+                            return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) > -1);
+                          };
+                        }
+                    }
+                  }
+                }
+
+            }, this);
+
+            // filter the items
+            var filterFunc = function (item) {
+                for (var key in filters){
+                    if(key in item)
+                        if( filters[key](item[key]) == false  )
+                            return false;
+                }
+                return true;
+            }
+            return this.props.items.filter(filterFunc);
+        },
         render: function() {
-            //console.log("render");
-
+            // kind of a hack so that we can get the table size at the beginning
+            // according to sizing config and the viewport
             if( !("height" in this.state ))
                 return React.DOM.div({
                     className:"rst_table",
@@ -426,39 +415,7 @@ table   [fixed size]
             });
 
             // filter the items
-            var filterFunc = function (value) {
-              return true;
-            }
-            var items = this.props.items.filter(filterFunc);
-
-/*
-            var filters = {};
-
-            var operandRegex = /^((?:(?:[<>]=?)|==))\s?([-]?\d+(?:\.\d+)?)$/;
-
-            columnNames.forEach(function(column) {
-              var filterText = this.state.columns[column].filterText;
-              filters[column] = null;
-
-              if (filterText.length > 0) {
-                operandMatch = operandRegex.exec(filterText);
-                if (operandMatch && operandMatch.length == 3) {
-                  //filters[column] = Function.apply(null, ["x", "return x " + operandMatch[1] + " " + operandMatch[2]]);
-                  filters[column] = function(match) { return function(x) { return operators[match[1]](x, match[2]); }; }(operandMatch);
-                } else {
-                  filters[column] = function(x) {
-                    return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) > -1);
-                  };
-                }
-              }
-            }, this);
-
-            var filteredItems = _.filter(this.state.items, function(item) {
-              return _.every(columnNames, function(c) {
-                return (!filters[c] || filters[c](item[c]));
-              }, this);
-            }, this);*/
-
+            var items = this.getFilteredItems();
 
             // sort the items
             var sortedColumn = this.state.sortColumn;
@@ -470,6 +427,7 @@ table   [fixed size]
             });
 
             //recompute extents
+            // TODO optimize this madness
             var rowsExtents = this.computeRowExtents(items);
             var fixedColumnsExtents = this.computeColumnExtents(this.state.visibleFixedColumns);
             var columnsExtents = this.computeColumnExtents(this.state.visibleColumns);
@@ -535,7 +493,6 @@ table   [fixed size]
                             height: headerHeight
                         },
                         className:"rst_left"
-                        //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
                 );
 
@@ -552,7 +509,6 @@ table   [fixed size]
                             overflowY:"hidden"
                         },
                         className:"rst_left"
-                        //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}, className:"rst_tbody"}, bodyCells)
                 );
                 grids.push(header);
@@ -581,7 +537,6 @@ table   [fixed size]
                             height: headerHeight,
                             overflowX: "hidden"
                         }
-                        //,onScroll:this.handleScroll
                     }, React.DOM.div( {style:{ position: "relative", width: innerRightWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
                 );
 
@@ -589,7 +544,7 @@ table   [fixed size]
                     React.DOM.div({
                         key: "right_body",
                         ref: "right_body",
-                        tabIndex:0, // in order to force focus :s
+                        tabIndex:0, // needed to force focus :s
                         style:{
                             position: "absolute",
                             left: leftWidth,
@@ -599,8 +554,8 @@ table   [fixed size]
                             overflowX: "auto",
                             overflowY: "auto"
                         },
-                        className:"rst_tbody_container"
-                        ,onScroll:this.handleRightBodyScroll
+                        className:"rst_tbody_container",
+                        onScroll:this.onRightBodyScroll
                     }, React.DOM.div( {style:{ position:"relative", width:innerRightWidth, height:innerHeight},className:"rst_tbody"}, bodyCells)
                 );
                 grids.push(header);

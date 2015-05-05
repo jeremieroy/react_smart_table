@@ -7,7 +7,7 @@
 
 
 .rst_thead {
-    
+
 }
 
 .rst_tbody_container:focus {
@@ -42,6 +42,10 @@
 
 .rst_empty {
     background: #EEEEEE;
+}
+
+.rst_center_text {
+    text-align:center;
 }
 
 .rst_th_wrapper {
