@@ -93,6 +93,8 @@ table   [fixed size]
                                   // minus offsetBottom
                 headerHeight:60,  // height of the header
                 rowHeight:30,     // height of a row
+                footerHeight:15,
+                footerPresent:true,
                 items:[],
                 fixedColumns:[],
                 columns:[],
@@ -440,6 +442,10 @@ table   [fixed size]
             var innerRightWidth = columnsExtents[columnsExtents.length-1];
 
             var headerHeight = this.props.headerHeight;
+            if (this.props.footerPresent)
+                var footerHeight = this.props.footerHeight;
+            else
+                var footerHeight = 0;
             var innerHeight = rowsExtents[rowsExtents.length-1];
 
             // handle case where height is set by its content
@@ -454,7 +460,7 @@ table   [fixed size]
             var outerRightWidth = width - leftWidth;
 
             var rightHeaderWidth = outerRightWidth;
-            var bodyHeight = height - headerHeight;
+            var bodyHeight = height - headerHeight - footerHeight;
             var leftBodyHeight = bodyHeight;
 
             // account for scrollbar
@@ -562,6 +568,32 @@ table   [fixed size]
                 grids.push(body);
             }
 
+            if (footerHeight > 0) {
+                var footer =
+                    React.DOM.div({
+                        key: "footer",
+                        ref: "footer",
+                        style:{
+                            position: "absolute",
+                            left: 0,
+                            top: headerHeight + bodyHeight,
+                            width: width,
+                            height: footerHeight,
+                            overflowX: "hidden",
+                            backgroundColor:"#EEE",
+                            borderTop: "1px solid #CCC",
+                            fontSize: "10px",
+                            padding: "1px",
+                        }
+                    },
+                    "Download ",
+                    React.DOM.a({onClick: this.downloadJSON, download: "code.json"}, "JSON"),
+                    " - ",
+                    React.DOM.a({onClick: this.downloadCSV, download: "code.csv"}, "CSV")
+                );
+                grids.push(footer);
+            }
+
             var containizer = React.DOM.div({
                 style:{ position:'relative',
                         width:width,
@@ -579,6 +611,28 @@ table   [fixed size]
                 }, containizer);
 
             return table_elem;
+        },
+
+        downloadJSON: function(plop) {
+            var data = this.getFilteredItems();
+            var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
+            saveAs(blob, "table_data.json");
+        },
+
+        downloadCSV: function(plop) {
+            var items = this.getFilteredItems();
+            var data = Object.keys(items[0]).join(";") + "\n"; // CSV Header
+
+            for (var row_id in items) {
+                var row = items[row_id];
+                var values = [];
+                for(var key in row) {
+                    values.push(row[key]);
+                }
+                data = data.concat(values.join(";")) + "\n"; // CSV row
+            }
+            var blob = new Blob([data], {type: "application/json;charset=utf-8"});
+            saveAs(blob, "table_data.csv");
         }
 
     });

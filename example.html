@@ -8,6 +8,7 @@
     <!-- js -->
     <script src="https://fb.me/react-0.13.1.js"></script>
     <script src="react_smart_table.js"></script>
+    <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <!-- Optional theme
@@ -107,7 +108,8 @@
             autoGenerateColumns:true,
             fixedColumns:fixedColumns,
             columns:columns,
-            items:items
+            items:items,
+            footerPresent:false
            }),
         document.getElementById('fixed_table')
       );
