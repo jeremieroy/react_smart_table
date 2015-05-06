@@ -70,7 +70,7 @@
       }
 
       //generate a random dataset
-      var rowCount = 10;
+      var rowCount = 1000;
       var columnCount = 5;
       var items = [];
       for(var row=0; row<rowCount;row++)
@@ -79,7 +79,15 @@
         item["id"] = row;
         for(var col=0; col<columnCount;col++)
         {
-          item["column_"+col] = randomString(3);
+          // generate bad/incomplete data in the stock
+          if(Math.floor(Math.random() *100) % 5 == 0)
+              continue;
+          else if(Math.floor(Math.random() *100) % 6 == 0)
+              item["column_"+col] = null;
+          else if(Math.floor(Math.random() *100) % 7 == 0)
+              item["column_"+col] = undefined;
+          else
+            item["column_"+col] = randomString(3);
         }
         items.push(item);
       }

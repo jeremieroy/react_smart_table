@@ -25,7 +25,7 @@ table   [fixed size]
 */
 
 
-(function (root, factory) {
+(function(root, factory) {
     if (typeof define === 'function' && define.amd) { // AMD
         define(['react'], factory);
     } else if (typeof exports === 'object') { // Node, CommonJS-like
@@ -33,7 +33,7 @@ table   [fixed size]
     } else { // Browser globals (root is window)
         root.ReactSmartTable = factory(root.React);
     }
-}(this, function (React) {
+}(this, function(React) {
     "use strict";
     var exports = {};
 
@@ -59,88 +59,110 @@ table   [fixed size]
 
     // Inequality function map for the filtering
     var operators = {
-      "<": function(x, y) { return x < y; },
-      "<=": function(x, y) { return x <= y; },
-      ">": function(x, y) { return x > y; },
-      ">=": function(x, y) { return x >= y; },
-      "==": function(x, y) { return x == y; },
-      "!=": function(x, y) { return x != y; }
+        "<": function(x, y) {
+            return x < y;
+        },
+        "<=": function(x, y) {
+            return x <= y;
+        },
+        ">": function(x, y) {
+            return x > y;
+        },
+        ">=": function(x, y) {
+            return x >= y;
+        },
+        "==": function(x, y) {
+            return x == y;
+        },
+        "!=": function(x, y) {
+            return x != y;
+        }
     };
 
 
     var exampleColumn = {
-        dataKey:"id",
-        label:"Id",
-        width:60,
-        isVisible:true,
-        cellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
+        dataKey: "id",
+        label: "Id",
+        width: 60,
+        isVisible: true,
+        cellRenderer: function(cellData, rowData, rowIndex, column, columnIndex) {
             return cellData;
         },
-        headerRenderer:function(column, columnIndex) {
-            if('label' in column)
+        headerRenderer: function(column, columnIndex) {
+            if ('label' in column)
                 return column.label;
             else
                 return column.dataKey;
         }
     };
 
-    var T = React.createClass({displayName: "Table",
+    var T = React.createClass({
+        displayName: "Table",
         getDefaultProps: function() {
             return {
-                width: 'auto',    // css rules -> width will expand horizontally to the parent border
-                height: 'auto',   // css rules -> height will expand vertically to the content
-                                  // if set to 'fill' the height will adjust to stick to the bottom of the window
-                                  // minus offsetBottom
-                headerHeight:60,  // height of the header
-                rowHeight:30,     // height of a row
-                footerHeight:15,
-                footerPresent:true,
-                items:[],
-                fixedColumns:[],
-                columns:[],
-                stickToBottom:false,
-                offsetBottom:5,  // pixel offset to the page bottom when fill is active
-                autoGenerateColumns:false,  // generate columns from the first item
-                defaultColumnWidth:80,
+                width: 'auto', // css rules -> width will expand horizontally to the parent border
+                height: 'auto', // css rules -> height will expand vertically to the content
+                // if set to 'fill' the height will adjust to stick to the bottom of the window
+                // minus offsetBottom
+                headerHeight: 60, // height of the header
+                rowHeight: 30, // height of a row
+                footerHeight: 15,
+                footerPresent: true,
+                items: [],
+                fixedColumns: [],
+                columns: [],
+                stickToBottom: false,
+                offsetBottom: 5, // pixel offset to the page bottom when fill is active
+                autoGenerateColumns: false, // generate columns from the first item
+                defaultColumnWidth: 80,
                 // generate columns from the data
                 autoColumnsGetter: function() {
-                    if(this.items.length == 0) return [];
+                    if (this.items.length == 0) return [];
 
                     var columnsField = Object.keys(this.items[0]);
                     var columns = [];
-                    for(var i=0;i<columnsField.length;i++) {
-                        columns.push({ dataKey: columnsField[i] });
+                    for (var i = 0; i < columnsField.length; i++) {
+                        columns.push({
+                            dataKey: columnsField[i]
+                        });
                     }
                     return columns;
                 },
-                defaultCellClassGetter:function(cellData, rowData, rowIndex, column, columnIndex) {
-                    if(cellData == undefined)
+                defaultCellClassGetter: function(cellData, rowData, rowIndex, column, columnIndex) {
+                    if (cellData == undefined)
                         return "rst_empty";
                 },
-                defaultCellRenderer:function(cellData, rowData, rowIndex, column, columnIndex) {
-                        return cellData;
+                defaultCellRenderer: function(cellData, rowData, rowIndex, column, columnIndex) {
+                    return cellData;
                 },
-                defaultHeaderRenderer:function(column, columnIndex) {
-                    if('label' in column)
+                defaultHeaderRenderer: function(column, columnIndex) {
+                    if ('label' in column)
                         return column.label;
                     else
                         return column.dataKey;
                 },
                 sortIconGetter: function(column, isAscending) {
                     var ascOrDesc = (isAscending) ? "glyphicon glyphicon-triangle-top" : "glyphicon glyphicon-triangle-bottom";
-                    return React.DOM.span({style:{position:"absolute", right:5, verticalAlign: "center"}, className:ascOrDesc});
+                    return React.DOM.span({
+                        style: {
+                            position: "absolute",
+                            right: 5,
+                            verticalAlign: "center"
+                        },
+                        className: ascOrDesc
+                    });
                 }
             };
         },
         getInitialState: function() {
             return {
-                scrollTop:0,
-                scrollLeft:0,
+                scrollTop: 0,
+                scrollLeft: 0,
                 sortOrderAscending: false,
                 sortColumn: null,
-                visibleColumns:[],
-                visibleFixedColumns:[],
-                filterTexts:{}
+                visibleColumns: [],
+                visibleFixedColumns: [],
+                filterTexts: {}
             };
         },
         componentWillMount: function() {
@@ -161,13 +183,13 @@ table   [fixed size]
                 window.onresize = this.onWindowResize;
             }
         },
-        onWindowResize:function() {
+        onWindowResize: function() {
             clearTimeout(this._updateTimer);
             this._updateTimer = setTimeout(this.updateSize, 16);
         },
-        updateSize:function() {
-            var container = ("findDOMNode" in React) ? React.findDOMNode(this):
-                            this.getDOMNode();
+        updateSize: function() {
+            var container = ("findDOMNode" in React) ? React.findDOMNode(this) :
+                this.getDOMNode();
 
             // console.log(rect);
             // console.log("W:" + container.offsetWidth+" vs "+container.clientWidth+" vs "+rect.width);
@@ -177,12 +199,12 @@ table   [fixed size]
             var h = this.props.height;
 
             w = container.clientWidth;
-            if(h == "fill") {
+            if (h == "fill") {
                 // rect is a DOMRect object with four properties: left, top, right, bottom
                 var rect = container.getBoundingClientRect();
                 //compute available space from the window and the table upper position
                 h = window.innerHeight - rect.top - this.props.offsetBottom;
-            }else{
+            } else {
                 h = container.clientHeight;
             }
             //console.log("updateSize w: "+w+" h: "+h);
@@ -196,88 +218,103 @@ table   [fixed size]
             var fixedColumns = [];
             var columns = [];
             var keys = {};
-            for(var i=0, len = props.fixedColumns.length ; i<len; i++) {
+            for (var i = 0, len = props.fixedColumns.length; i < len; i++) {
                 var column = props.fixedColumns[i];
                 keys[column.dataKey] = true;
                 fixedColumns.push(column);
             }
 
-            for(var i=0, len = props.columns.length ; i<len; i++) {
+            for (var i = 0, len = props.columns.length; i < len; i++) {
                 var column = props.columns[i];
-                if(!(column.dataKey in keys) ){
+                if (!(column.dataKey in keys)) {
                     keys[column.dataKey] = true;
                     columns.push(column);
                 }
             }
 
             var generatedColumns = (props.autoGenerateColumns) ? props.autoColumnsGetter() : [];
-            for(var i=0, len = generatedColumns.length; i<len; i++) {
+            for (var i = 0, len = generatedColumns.length; i < len; i++) {
                 var column = generatedColumns[i];
-                if(!(column.dataKey in keys) ){
+                if (!(column.dataKey in keys)) {
                     keys[column.dataKey] = true;
                     columns.push(column);
                 }
             }
 
-            this.setState( {
-                visibleFixedColumns:fixedColumns,
-                visibleColumns:columns
+            this.setState({
+                visibleFixedColumns: fixedColumns,
+                visibleColumns: columns
             });
         },
         computeColumnExtents: function(columns) {
-            var extents = [0], val = 0;
-            for(var i=0, len = columns.length ; i<len; i++) {
+            var extents = [0],
+                val = 0;
+            for (var i = 0, len = columns.length; i < len; i++) {
                 val += ("width" in columns[i]) ? columns[i].width : this.props.defaultColumnWidth;
                 extents.push(val);
             }
             return extents;
         },
         computeRowExtents: function(items) {
-            var extents = [0], val = 0;
-            for(var i=0, len = items.length; i<len; i++) {
-                val+=this.props.rowHeight;
+            var extents = [0],
+                val = 0;
+            for (var i = 0, len = items.length; i < len; i++) {
+                val += this.props.rowHeight;
                 extents.push(val);
             }
             return extents;
         },
-        getVisibleSlice: function (extents, minVal, maxVal)
-        {
-            var i=1, len = extents.length-1;
-            if(len<1){
-                return {begin:0, end:0};
+        getVisibleSlice: function(extents, minVal, maxVal) {
+            var i = 1,
+                len = extents.length - 1;
+            if (len < 1) {
+                return {
+                    begin: 0,
+                    end: 0
+                };
             }
 
-            while( i<len && extents[i] < minVal) { i++;}
-            var begin = i-1;
+            while (i < len && extents[i] < minVal) {
+                i++;
+            }
+            var begin = i - 1;
 
-            while( i<len && extents[i] < maxVal) { i++; }
+            while (i < len && extents[i] < maxVal) {
+                i++;
+            }
             var end = i;
-            return {begin:begin, end:end};
+            return {
+                begin: begin,
+                end: end
+            };
         },
         onSortColumn: function(column) {
             return function(event) {
-                var newSortOrder = (this.state.sortColumn != column)?true:(!this.state.sortOrderAscending);
-                this.setState({sortColumn: column, sortOrderAscending:newSortOrder});
+                var newSortOrder = (this.state.sortColumn != column) ? true : (!this.state.sortOrderAscending);
+                this.setState({
+                    sortColumn: column,
+                    sortOrderAscending: newSortOrder
+                });
             }.bind(this);
         },
         onFilterTextChange: function(column) {
             return function(newValue) {
                 this.state.filterTexts[column.dataKey] = newValue;
-              // Mutation without setState so we need to call forceUpdate().
-              this.forceUpdate();
+                // Mutation without setState so we need to call forceUpdate().
+                this.forceUpdate();
             }.bind(this);
         },
         onRightBodyScroll: function(e) {
-            if( (e.target.scrollLeft != this.state.scrollLeft) ||
+            if ((e.target.scrollLeft != this.state.scrollLeft) ||
                 (e.target.scrollTop != this.state.scrollTop)) {
                 this.setState({
-                    scrollTop :e.target.scrollTop,
-                    scrollLeft:e.target.scrollLeft
-                }, function(){
-                    if("left_body" in this.refs){
+                    scrollTop: e.target.scrollTop,
+                    scrollLeft: e.target.scrollLeft
+                }, function() {
+                    if ("left_body" in this.refs) {
                         this.refs.left_body.getDOMNode().scrollTop = this.state.scrollTop;
                     }
-                    if("right_header" in this.refs){
+                    if ("right_header" in this.refs) {
                         this.refs.right_header.getDOMNode().scrollLeft = this.state.scrollLeft;
                     }
                     //force focus on body
@@ -288,76 +325,102 @@ table   [fixed size]
         renderHeader: function(colSlice, columns, extents) {
             var titles = [];
             var filters = [];
-            for(var i = colSlice.begin; i<colSlice.end; i++) {
+            for (var i = colSlice.begin; i < colSlice.end; i++) {
                 var column = columns[i];
                 // Generate title
-                var cellElem = ('headerRenderer' in column)?
-                    column.headerRenderer(column, i):
+                var cellElem = ('headerRenderer' in column) ?
+                    column.headerRenderer(column, i) :
                     this.props.defaultHeaderRenderer(column, i);
 
                 var style = {
                     left: extents[i],
-                    width: extents[i+1]-extents[i],
+                    width: extents[i + 1] - extents[i],
                     height: this.props.headerHeight
                 };
 
                 // ... with sort icon
                 var icon = null;
-                if(this.state.sortColumn!=null && this.state.sortColumn == column.dataKey){
+                if (this.state.sortColumn != null && this.state.sortColumn == column.dataKey) {
                     icon = this.props.sortIconGetter(column, this.state.sortOrderAscending);
                 }
 
-                cellElem = React.DOM.div({className:"rst_th_wrapper", onClick:this.onSortColumn(column.dataKey)}, cellElem, icon);
+                cellElem = React.DOM.div({
+                    className: "rst_th_wrapper",
+                    onClick: this.onSortColumn(column.dataKey)
+                }, cellElem, icon);
                 // Make search filter
                 var valueLink = {
-                    value: (column.dataKey in this.state.filterTexts) ? this.state.filterTexts[column.dataKey]: "",
+                    value: (column.dataKey in this.state.filterTexts) ? this.state.filterTexts[column.dataKey] : "",
                     requestChange: this.onFilterTextChange(column)
-                  };
-                var filter = React.DOM.input({type:"text", valueLink:valueLink, style:{ display: 'block', width: '100%', marginTop:2}});
-                titles.push( React.DOM.div( {style:style, key:i, className:"rst_th" }, cellElem, filter) );
+                };
+                var filter = React.DOM.input({
+                    type: "text",
+                    valueLink: valueLink,
+                    style: {
+                        display: 'block',
+                        width: '100%',
+                        marginTop: 2
+                    }
+                });
+                titles.push(React.DOM.div({
+                    style: style,
+                    key: i,
+                    className: "rst_th"
+                }, cellElem, filter));
             }
 
             var style = {
-                top: 0, height: this.props.headerHeight
+                top: 0,
+                height: this.props.headerHeight
             };
-            return React.DOM.div( {style:style, className:"rst_tr"}, titles);
+            return React.DOM.div({
+                style: style,
+                className: "rst_tr"
+            }, titles);
         },
         renderBody: function(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents) {
             var rows = [];
-            for(var j = rowSlice.begin; j < rowSlice.end; j++) {
+            for (var j = rowSlice.begin; j < rowSlice.end; j++) {
                 var rowData = items[j];
                 var cells = [];
-                for(var i = colSlice.begin; i < colSlice.end; i++) {
+                for (var i = colSlice.begin; i < colSlice.end; i++) {
 
                     var column = columns[i];
                     var style = {
                         left: columnsExtents[i],
-                        width:columnsExtents[i+1]-columnsExtents[i],
+                        width: columnsExtents[i + 1] - columnsExtents[i],
                         height: this.props.rowHeight
                     };
                     var className = "rst_td";
                     var cellElem = null;
                     var cellData = undefined;
-                    if(column.dataKey in rowData)
-                    {
+                    if (column.dataKey in rowData) {
                         cellData = rowData[column.dataKey];
-                        cellElem = ('cellRenderer' in column)?
-                            column.cellRenderer(cellData, rowData, j, column, i):
+                        cellElem = ('cellRenderer' in column) ?
+                            column.cellRenderer(cellData, rowData, j, column, i) :
                             this.props.defaultCellRenderer(cellData, rowData, j, column, i);
                     }
                     var customClass = ('cellClassGetter' in column) ?
-                            column.cellClassGetter(cellData, rowData, j, column, i):
-                            this.props.defaultCellClassGetter(cellData, rowData, j, column, i);
+                        column.cellClassGetter(cellData, rowData, j, column, i) :
+                        this.props.defaultCellClassGetter(cellData, rowData, j, column, i);
 
-                    className += " "+customClass;
+                    className += " " + customClass;
 
-                    cells.push( React.DOM.div( {style:style, key:i, className:className}, cellElem) );
+                    cells.push(React.DOM.div({
+                        style: style,
+                        key: i,
+                        className: className
+                    }, cellElem));
                 }
                 var style = {
                     top: rowsExtents[j],
                     height: this.props.rowHeight
                 };
-                rows.push( React.DOM.div( {style:style, key:j, className:"rst_tr"}, cells) );
+                rows.push(React.DOM.div({
+                    style: style,
+                    key: j,
+                    className: "rst_tr"
+                }, cells));
             }
             return rows;
         },
@@ -369,36 +432,45 @@ table   [fixed size]
 
             allColumns.forEach(function(column) {
 
-                if(column.dataKey in this.state.filterTexts){
-                     var filterText = this.state.filterTexts[column.dataKey];
+                if (column.dataKey in this.state.filterTexts) {
+                    var filterText = this.state.filterTexts[column.dataKey];
 
-                  if (filterText.length > 0) {
-                    var operandMatch = operandRegex.exec(filterText);
-                    if (operandMatch && operandMatch.length == 3) {
-                      filters[column.dataKey] = function(match) { return function(x) { return operators[match[1]](x, match[2]); }; }(operandMatch);
-                    } else {
-                        if(filterText.indexOf("!=") == 0) {
-                            filterText = filterText.substring(2);
-                            filters[column.dataKey] = function(x) {
-                                return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) == -1);
-                              };
-                        }else{
-                            filters[column.dataKey] = function(x) {
-                            return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) > -1);
-                          };
+                    if (filterText.length > 0) {
+                        var operandMatch = operandRegex.exec(filterText);
+                        if (operandMatch && operandMatch.length == 3) {
+                            filters[column.dataKey] = function(match) {
+                                return function(x) {
+                                    if (x === null || x === undefined) return false;
+                                    return operators[match[1]](x, match[2]);
+                                };
+                            }(operandMatch);
+                        } else {
+                            if (filterText.indexOf("!=") == 0) {
+                                filterText = filterText.substring(2);
+                                filters[column.dataKey] = function(x) {
+                                    if (x === null || x === undefined) return true;
+                                    return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) == -1);
+                                };
+                            } else {
+                                filters[column.dataKey] = function(x) {
+                                    if (x === null || x === undefined) return false;
+                                    return (x.toString().toLowerCase().indexOf(filterText.toLowerCase()) > -1);
+                                };
+                            }
                         }
                     }
-                  }
                 }
 
             }, this);
 
             // filter the items
-            var filterFunc = function (item) {
-                for (var key in filters){
-                    if(key in item)
-                        if( filters[key](item[key]) == false  )
-                            return false;
+            var filterFunc = function(item) {
+                for (var key in filters) {
+                    if (key in item)
+                        return filters[key](item[key]);
+                    else
+                        return filters[key](undefined);
+
                 }
                 return true;
             }
@@ -407,25 +479,25 @@ table   [fixed size]
         render: function() {
             // kind of a hack so that we can get the table size at the beginning
             // according to sizing config and the viewport
-            if( !("height" in this.state ))
+            if (!("height" in this.state))
                 return React.DOM.div({
-                    className:"rst_table",
-                    style : {
+                    className: "rst_table",
+                    style: {
                         width: this.props.width,
                         height: this.props.height
                     }
-            });
+                });
 
             // filter the items
             var items = this.getFilteredItems();
 
             // sort the items
             var sortedColumn = this.state.sortColumn;
-            var order = this.state.sortOrderAscending?1:-1;
-            var key = sortedColumn;//this.state.sortColumn.dataKey;
+            var order = this.state.sortOrderAscending ? 1 : -1;
+            var key = sortedColumn; //this.state.sortColumn.dataKey;
 
-            items.sort( function(x,y){
-                return (x[key] === y[key])? 0: (x[key] > y[key] ? order : -order);
+            items.sort(function(x, y) {
+                return (x[key] === y[key]) ? 0 : (x[key] > y[key] ? order : -order);
             });
 
             //recompute extents
@@ -435,27 +507,24 @@ table   [fixed size]
             var columnsExtents = this.computeColumnExtents(this.state.visibleColumns);
 
             // outer size == viewport size
-            var width = this.state.width ;
+            var width = this.state.width;
             var height = this.state.height;
 
-            var leftWidth = fixedColumnsExtents[fixedColumnsExtents.length-1];
-            var innerRightWidth = columnsExtents[columnsExtents.length-1];
+            var leftWidth = fixedColumnsExtents[fixedColumnsExtents.length - 1];
+            var innerRightWidth = columnsExtents[columnsExtents.length - 1];
 
             var headerHeight = this.props.headerHeight;
-            if (this.props.footerPresent)
-                var footerHeight = this.props.footerHeight;
-            else
-                var footerHeight = 0;
-            var innerHeight = rowsExtents[rowsExtents.length-1];
+            var footerHeight = (this.props.footerPresent) ? this.props.footerHeight : 0;
+            var innerHeight = rowsExtents[rowsExtents.length - 1];
 
             // handle case where height is set by its content
             // TODO better support of scrollbar
-            if(this.props.height == "auto")
+            if (this.props.height == "auto")
                 height = innerHeight + headerHeight + this.SB.height;
 
             // handle case where width is bigger than its content
-            if(width > innerRightWidth + leftWidth +this.SB.width)
-                width = innerRightWidth+leftWidth + this.SB.width;
+            if (width > innerRightWidth + leftWidth + this.SB.width)
+                width = innerRightWidth + leftWidth + this.SB.width;
 
             var outerRightWidth = width - leftWidth;
 
@@ -467,10 +536,10 @@ table   [fixed size]
             var verticalBarVisible = innerHeight > bodyHeight;
             var horizontalBarVisible = innerRightWidth > outerRightWidth;
 
-            if(verticalBarVisible)
-                rightHeaderWidth-= this.SB.width;
+            if (verticalBarVisible)
+                rightHeaderWidth -= this.SB.width;
 
-            if(horizontalBarVisible)
+            if (horizontalBarVisible)
                 leftBodyHeight -= this.SB.height;
 
             // right body decal
@@ -481,9 +550,11 @@ table   [fixed size]
 
             var columns = this.state.visibleFixedColumns;
             // compute left header cells and left body cells
-            if( columns.length > 0 )
-            {
-                var colSlice = {begin:0, end: columns.length};
+            if (columns.length > 0) {
+                var colSlice = {
+                    begin: 0,
+                    end: columns.length
+                };
                 var headerCells = this.renderHeader(colSlice, columns, fixedColumnsExtents);
                 var bodyCells = this.renderBody(colSlice, rowSlice, columns, fixedColumnsExtents, items, rowsExtents);
 
@@ -491,32 +562,44 @@ table   [fixed size]
                     React.DOM.div({
                         key: "left_header",
                         ref: "left_header",
-                        style:{
+                        style: {
                             position: "absolute",
                             left: 0,
                             top: 0,
                             width: leftWidth,
                             height: headerHeight
                         },
-                        className:"rst_left"
-                    }, React.DOM.div( {style:{ position: "relative", width: leftWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
-                );
+                        className: "rst_left"
+                    }, React.DOM.div({
+                        style: {
+                            position: "relative",
+                            width: leftWidth,
+                            height: headerHeight
+                        },
+                        className: "rst_thead"
+                    }, headerCells));
 
                 var body =
                     React.DOM.div({
                         key: "left_body",
                         ref: "left_body",
-                        style:{
+                        style: {
                             position: "absolute",
                             left: 0,
                             top: headerHeight,
                             width: leftWidth,
                             height: leftBodyHeight,
-                            overflowY:"hidden"
+                            overflowY: "hidden"
                         },
-                        className:"rst_left"
-                    }, React.DOM.div( {style:{ position:"relative", width:leftWidth, height:innerHeight}, className:"rst_tbody"}, bodyCells)
-                );
+                        className: "rst_left"
+                    }, React.DOM.div({
+                        style: {
+                            position: "relative",
+                            width: leftWidth,
+                            height: innerHeight
+                        },
+                        className: "rst_tbody"
+                    }, bodyCells));
                 grids.push(header);
                 grids.push(body);
             }
@@ -525,8 +608,7 @@ table   [fixed size]
 
             columns = this.state.visibleColumns;
             // compute right header cells and right body cells
-            if( columns.length > 0 )
-            {
+            if (columns.length > 0) {
                 var colSlice = this.getVisibleSlice(columnsExtents, scrollLeft, scrollLeft + rightHeaderWidth);
                 var headerCells = this.renderHeader(colSlice, columns, columnsExtents);
                 var bodyCells = this.renderBody(colSlice, rowSlice, columns, columnsExtents, items, rowsExtents);
@@ -535,7 +617,7 @@ table   [fixed size]
                     React.DOM.div({
                         key: "right_header",
                         ref: "right_header",
-                        style:{
+                        style: {
                             position: "absolute",
                             left: leftWidth,
                             top: 0,
@@ -543,15 +625,21 @@ table   [fixed size]
                             height: headerHeight,
                             overflowX: "hidden"
                         }
-                    }, React.DOM.div( {style:{ position: "relative", width: innerRightWidth, height: headerHeight}, className:"rst_thead"}, headerCells)
-                );
+                    }, React.DOM.div({
+                        style: {
+                            position: "relative",
+                            width: innerRightWidth,
+                            height: headerHeight
+                        },
+                        className: "rst_thead"
+                    }, headerCells));
 
                 var body =
                     React.DOM.div({
                         key: "right_body",
                         ref: "right_body",
-                        tabIndex:0, // needed to force focus :s
-                        style:{
+                        tabIndex: 0, // needed to force focus :s
+                        style: {
                             position: "absolute",
                             left: leftWidth,
                             top: headerHeight,
@@ -560,10 +648,16 @@ table   [fixed size]
                             overflowX: "auto",
                             overflowY: "auto"
                         },
-                        className:"rst_tbody_container",
-                        onScroll:this.onRightBodyScroll
-                    }, React.DOM.div( {style:{ position:"relative", width:innerRightWidth, height:innerHeight},className:"rst_tbody"}, bodyCells)
-                );
+                        className: "rst_tbody_container",
+                        onScroll: this.onRightBodyScroll
+                    }, React.DOM.div({
+                        style: {
+                            position: "relative",
+                            width: innerRightWidth,
+                            height: innerHeight
+                        },
+                        className: "rst_tbody"
+                    }, bodyCells));
                 grids.push(header);
                 grids.push(body);
             }
@@ -571,51 +665,61 @@ table   [fixed size]
             if (footerHeight > 0) {
                 var footer =
                     React.DOM.div({
-                        key: "footer",
-                        ref: "footer",
-                        style:{
-                            position: "absolute",
-                            left: 0,
-                            top: headerHeight + bodyHeight,
-                            width: width,
-                            height: footerHeight,
-                            overflowX: "hidden",
-                            backgroundColor:"#EEE",
-                            borderTop: "1px solid #CCC",
-                            fontSize: "10px",
-                            padding: "1px",
-                        }
-                    },
-                    "Download ",
-                    React.DOM.a({onClick: this.downloadJSON, download: "code.json"}, "JSON"),
-                    " - ",
-                    React.DOM.a({onClick: this.downloadCSV, download: "code.csv"}, "CSV")
-                );
+                            key: "footer",
+                            ref: "footer",
+                            style: {
+                                position: "absolute",
+                                left: 0,
+                                top: headerHeight + bodyHeight,
+                                width: width,
+                                height: footerHeight,
+                                overflow: "hidden",
+                                backgroundColor: "#EEE",
+                                borderTop: "1px solid #CCC",
+                                fontSize: "10px",
+                                padding: "1px",
+                            }
+                        },
+                        "Download ",
+                        React.DOM.a({
+                            onClick: this.downloadJSON,
+                            download: "code.json"
+                        }, "JSON"),
+                        " - ",
+                        React.DOM.a({
+                            onClick: this.downloadCSV,
+                            download: "code.csv"
+                        }, "CSV")
+                    );
                 grids.push(footer);
             }
 
             var containizer = React.DOM.div({
-                style:{ position:'relative',
-                        width:width,
-                        height:height
-                    }
-                }, grids);
+                style: {
+                    position: 'relative',
+                    width: width,
+                    height: height
+                }
+            }, grids);
 
-             var table_elem = React.DOM.div({
-                key:"table",
-                className:"rst_table",
-                style:{ position:'relative',
-                        width:this.props.width,
-                        height:(this.props.height == 'fill')?"auto":this.props.height
-                    }
-                }, containizer);
+            var table_elem = React.DOM.div({
+                key: "table",
+                className: "rst_table",
+                style: {
+                    position: 'relative',
+                    width: this.props.width,
+                    height: (this.props.height == 'fill') ? "auto" : this.props.height
+                }
+            }, containizer);
 
             return table_elem;
         },
 
         downloadJSON: function(plop) {
             var data = this.getFilteredItems();
-            var blob = new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"});
+            var blob = new Blob([JSON.stringify(data)], {
+                type: "application/json;charset=utf-8"
+            });
             saveAs(blob, "table_data.json");
         },
 
@@ -626,12 +730,14 @@ table   [fixed size]
             for (var row_id in items) {
                 var row = items[row_id];
                 var values = [];
-                for(var key in row) {
+                for (var key in row) {
                     values.push(row[key]);
                 }
                 data = data.concat(values.join(";")) + "\n"; // CSV row
             }
-            var blob = new Blob([data], {type: "application/json;charset=utf-8"});
+            var blob = new Blob([data], {
+                type: "application/json;charset=utf-8"
+            });
             saveAs(blob, "table_data.csv");
         }
 
