@@ -115,6 +115,8 @@ table   [fixed size]
                 offsetBottom: 5, // pixel offset to the page bottom when fill is active
                 autoGenerateColumns: false, // generate columns from the first item
                 defaultColumnWidth: 80,
+                defaultSortColumn:null,
+                defaultSortOrderAscending:false,
                 // generate columns from the data
                 autoColumnsGetter: function() {
                     if (this.items.length == 0) return [];
@@ -158,8 +160,8 @@ table   [fixed size]
             return {
                 scrollTop: 0,
                 scrollLeft: 0,
-                sortOrderAscending: false,
-                sortColumn: null,
+                sortOrderAscending: this.props.defaultSortOrderAscending,
+                sortColumn: this.props.defaultSortColumn,
                 visibleColumns: [],
                 visibleFixedColumns: [],
                 filterTexts: {}
@@ -492,13 +494,16 @@ table   [fixed size]
             var items = this.getFilteredItems();
 
             // sort the items
-            var sortedColumn = this.state.sortColumn;
-            var order = this.state.sortOrderAscending ? 1 : -1;
-            var key = sortedColumn; //this.state.sortColumn.dataKey;
+            if(this.state.sortColumn) {
+                var sortedColumn = this.state.sortColumn;
+                var order = this.state.sortOrderAscending ? 1 : -1;
+                var key = sortedColumn; //this.state.sortColumn.dataKey;
 
-            items.sort(function(x, y) {
-                return (x[key] === y[key]) ? 0 : (x[key] > y[key] ? order : -order);
-            });
+                items.sort(function(x, y) {
+                    return (x[key] === y[key]) ? 0 : (x[key] > y[key] ? order : -order);
+                });
+            }
+
 
             //recompute extents
             // TODO optimize this madness
