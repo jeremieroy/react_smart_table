@@ -104,14 +104,15 @@ table   [fixed size]
                 height: 'auto', // css rules -> height will expand vertically to the content
                 // if set to 'fill' the height will adjust to stick to the bottom of the window
                 // minus offsetBottom
-                headerHeight: 60, // height of the header
+                headerHeight: 30, // height of the header
+                filterHeight:30,
                 rowHeight: 30, // height of a row
                 footerHeight: 15,
                 footerPresent: true,
+                filterPresent: true,
                 items: [],
                 fixedColumns: [],
                 columns: [],
-                stickToBottom: false,
                 offsetBottom: 5, // pixel offset to the page bottom when fill is active
                 autoGenerateColumns: false, // generate columns from the first item
                 defaultColumnWidth: 80,
@@ -176,14 +177,10 @@ table   [fixed size]
         },
         componentDidMount: function() {
             this.updateSize();
-            // Q: should this be moved out ? it is quite a common need ...
-            if (window.addEventListener) {
-                window.addEventListener('resize', this.onWindowResize, false);
-            } else if (window.attachEvent) {
-                window.attachEvent('onresize', this.onWindowResize);
-            } else {
-                window.onresize = this.onWindowResize;
-            }
+            $(window).on('resize', this.onWindowResize);
+        },
+        componentWillUnmount:function() {
+            $(window).off('resize', this.onWindowResize);
         },
         onWindowResize: function() {
             clearTimeout(this._updateTimer);
@@ -206,6 +203,7 @@ table   [fixed size]
                 var rect = container.getBoundingClientRect();
                 //compute available space from the window and the table upper position
                 h = window.innerHeight - rect.top - this.props.offsetBottom;
+                //console.log('fill',h);
             } else {
                 h = container.clientHeight;
             }
@@ -325,6 +323,9 @@ table   [fixed size]
             }
         },
         renderHeader: function(colSlice, columns, extents) {
+            var headerHeight = this.props.headerHeight;
+            if(this.props.filterPresent) headerHeight += this.props.filterHeight;
+
             var titles = [];
             var filters = [];
             for (var i = colSlice.begin; i < colSlice.end; i++) {
@@ -337,7 +338,7 @@ table   [fixed size]
                 var style = {
                     left: extents[i],
                     width: extents[i + 1] - extents[i],
-                    height: this.props.headerHeight
+                    height: headerHeight
                 };
 
                 // ... with sort icon
@@ -350,20 +351,25 @@ table   [fixed size]
                     className: "rst_th_wrapper",
                     onClick: this.onSortColumn(column.dataKey)
                 }, cellElem, icon);
-                // Make search filter
-                var valueLink = {
-                    value: (column.dataKey in this.state.filterTexts) ? this.state.filterTexts[column.dataKey] : "",
-                    requestChange: this.onFilterTextChange(column)
-                };
-                var filter = React.DOM.input({
-                    type: "text",
-                    valueLink: valueLink,
-                    style: {
-                        display: 'block',
-                        width: '100%',
-                        marginTop: 2
-                    }
-                });
+
+                var filter = null;
+                if(this.props.filterPresent) {
+                    // Make search filter
+                    var valueLink = {
+                        value: (column.dataKey in this.state.filterTexts) ? this.state.filterTexts[column.dataKey] : "",
+                        requestChange: this.onFilterTextChange(column)
+                    };
+                    filter = React.DOM.input({
+                        type: "text",
+                        valueLink: valueLink,
+                        style: {
+                            display: 'block',
+                            width: '100%',
+                            marginTop: 2
+                        }
+                    });
+                }
+
                 titles.push(React.DOM.div({
                     style: style,
                     key: i,
@@ -373,7 +379,7 @@ table   [fixed size]
 
             var style = {
                 top: 0,
-                height: this.props.headerHeight
+                height: headerHeight
             };
             return React.DOM.div({
                 style: style,
@@ -398,9 +404,11 @@ table   [fixed size]
                     var cellData = undefined;
                     if (column.dataKey in rowData) {
                         cellData = rowData[column.dataKey];
-                        cellElem = ('cellRenderer' in column) ?
+                        if (cellData !== null && cellData !== undefined){
+                            cellElem = ('cellRenderer' in column) ?
                             column.cellRenderer(cellData, rowData, j, column, i) :
                             this.props.defaultCellRenderer(cellData, rowData, j, column, i);
+                        }
                     }
                     var customClass = ('cellClassGetter' in column) ?
                         column.cellClassGetter(cellData, rowData, j, column, i) :
@@ -468,11 +476,11 @@ table   [fixed size]
             // filter the items
             var filterFunc = function(item) {
                 for (var key in filters) {
-                    if (key in item)
-                        return filters[key](item[key]);
-                    else
-                        return filters[key](undefined);
-
+                    if (key in item) {
+                        if(!filters[key](item[key])) return false;
+                    }else{
+                        if(!filters[key](undefined)) return false;
+                    }
                 }
                 return true;
             }
@@ -519,8 +527,11 @@ table   [fixed size]
             var innerRightWidth = columnsExtents[columnsExtents.length - 1];
 
             var headerHeight = this.props.headerHeight;
+            if(this.props.filterPresent) headerHeight += this.props.filterHeight;
             var footerHeight = (this.props.footerPresent) ? this.props.footerHeight : 0;
             var innerHeight = rowsExtents[rowsExtents.length - 1];
+            if (innerHeight == 0)
+                innerHeight = 1;
 
             // handle case where height is set by its content
             // TODO better support of scrollbar
@@ -550,6 +561,7 @@ table   [fixed size]
             // right body decal
             var scrollLeft = this.state.scrollLeft;
             var scrollTop = this.state.scrollTop;
+
             var rowSlice = this.getVisibleSlice(rowsExtents, scrollTop, scrollTop + height);
             var grids = [];
 
